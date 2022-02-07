@@ -2,67 +2,26 @@ class Hand {
 
   constructor() {
     this.cardsInHand = {};
-    this.cursedItems = {};
   }
 
   addCard(card) {
     if (this._canAdd(card)) {
-      if (card.cursedItem) {
-        this.cursedItems[card.id] = new CardInHand(card);
-      } else {
-        this.cardsInHand[card.id] = new CardInHand(card);
-      }
+      this.cardsInHand[card.id] = new CardInHand(card);
       return true;
     }
     return false;
   }
 
   _canAdd(newCard) {
-    if (newCard.cursedItem) {
-      return this.cursedItems[newCard.id] === undefined;
-    } else if (this.cardsInHand[newCard.id] !== undefined || this.size() > this._defaultLimit()) {
-      return false;
-    } else if (this.size() < this._limitWithoutNecromancer()) {
-      return true;
-    } else if (![NECROMANCER, CH_NECROMANCER].includes(newCard.id) && newCard.extraCard) {
-      return true;
-    } else if (this.containsId(NECROMANCER, true) || newCard.id === NECROMANCER) {
-      var targetFound = false;
-      for (const card of this.cards()) {
-        if (card.card.id !== NECROMANCER && deck.getCardById(NECROMANCER).relatedSuits.includes(card.card.suit)) {
-          targetFound = true;
-        }
-      }
-      return targetFound || this.containsId(NECROMANCER, true) && deck.getCardById(NECROMANCER).relatedSuits.includes(newCard.suit);
-    } else if (this.containsId(CH_NECROMANCER, true) || newCard.id === CH_NECROMANCER) {
-      var targetFound = false;
-      for (const card of this.cards()) {
-        if (card.card.id !== CH_NECROMANCER && deck.getCardById(CH_NECROMANCER).relatedSuits.includes(card.card.suit)) {
-          targetFound = true;
-        }
-      }
-      return targetFound || this.containsId(CH_NECROMANCER, true) && deck.getCardById(CH_NECROMANCER).relatedSuits.includes(newCard.suit);
-    } else {
-      return false;
-    }
-  }
-
-  _normalizeId(id) {
-    if (id.match(/^[0-9+]+$/)) {
-      return 'FR' + id.padStart(2, '0');
-    }
-    return id;
+    return true;
   }
 
   deleteCardById(id) {
-    var normalizedId = this._normalizeId(id);
-    delete this.cardsInHand[normalizedId];
-    delete this.cursedItems[normalizedId];
+    delete this.cardsInHand[id];
   }
 
   getCardById(id) {
-    var normalizedId = this._normalizeId(id);
-    return this.cardsInHand[normalizedId] || this.cursedItems[normalizedId];
+    return this.cardsInHand[id];
   }
 
   contains(cardName) {
@@ -89,52 +48,95 @@ class Hand {
     return this.cardsInHand[cardId] !== undefined && (!this.cardsInHand[cardId].blanked || allowBlanked);
   }
 
-  containsSuit(suitName) {
+  containsType(typeName) {
     for (const card of this.nonBlankedCards()) {
-      if (card.suit === suitName) {
+      if (card.type === typeName) {
         return true;
       }
     }
     return false;
   }
 
-  containsSuitExcluding(suitName, excludingCardId) {
+  containsTypeExcluding(typeName, excludingCardId) {
     for (const card of this.nonBlankedCards()) {
-      if (card.suit === suitName && card.id !== excludingCardId) {
+      if (card.type === typeName && card.id !== excludingCardId) {
         return true;
       }
     }
     return false;
   }
 
-  countSuit(suitName) {
+  countType(typeName) {
     var count = 0;
     for (const card of this.nonBlankedCards()) {
-      if (card.suit === suitName) {
+      if (card.type === typeName) {
         count++;
       }
     }
     return count;
   }
 
-  countSuitExcluding(suitName, excludingCardId) {
+  countTypeExcluding(typeName, excludingCardId) {
     var count = 0;
     for (const card of this.nonBlankedCards()) {
-      if (card.suit === suitName && card.id !== excludingCardId) {
+      if (card.type === typeName && card.id !== excludingCardId) {
         count++;
       }
     }
     return count;
+  }
+
+  containsTag(tagName) {
+    for (const card of this.nonBlankedCards()) {
+      if (card.hasTag(tagName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  containsTagExcluding(tagName, excludingCardId) {
+    for (const card of this.nonBlankedCards()) {
+      if (card.id !== excludingCardId && card.hasTag(tagName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  countTag(tagName) {
+    var count = 0;
+    for (const card of this.nonBlankedCards()) {
+      if (card.hasTag(tagName)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  countTagExcluding(tagName, excludingCardId) {
+    var count = 0;
+    for (const card of this.nonBlankedCards()) {
+      if (card.id !== excludingCardId && card.hasTag(tagName)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  containsTypeWithTag(typeName, tagName) {
+    for (const card of this.nonBlankedCards()) {
+      if (card.type === typeName && card.hasTag(tagName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   nonBlankedCards() {
-    return this.cards().filter(function(card) {
+    return this.cards().filter(function (card) {
       return !card.blanked;
     });
-  }
-
-  faceDownCursedItems() {
-    return Object.values(this.cursedItems);
   }
 
   cards() {
@@ -142,22 +144,19 @@ class Hand {
   }
 
   cardNames() {
-    return this.cards().map(function(card) {
+    return this.cards().map(function (card) {
       return card.name;
     });
   }
 
-  score(discard) {
+  score() {
     var score = 0;
     this._resetHand();
     this._performCardActions();
-    this._clearPenalties();
     this._applyBlanking();
+    this._transform();
     for (const card of this.nonBlankedCards()) {
-      score += card.score(this, discard);
-    }
-    for (const cursedItem of this.faceDownCursedItems()) {
-      score += cursedItem.score(this, discard);
+      score += card.score(this);
     }
     return score;
   }
@@ -177,73 +176,43 @@ class Hand {
     }
   }
 
-  _clearPenalties() {
-    for (const card of this.cards()) {
-      if (card.clearsPenalty !== undefined) {
-        for (const target of this.cards()) {
-          if (card.clearsPenalty(target)) {
-            target.penaltyCleared = true;
-          }
-        }
-      }
-    }
-  }
-
   _applyBlanking() {
-    // Demon blanking takes place before any other blanking
-    if (this.containsId(CH_DEMON)) {
-      const demon = this.getCardById(CH_DEMON);
-      if (!demon.penaltyCleared) {
-        for (const target of this.cards()) {
-          if (demon.blanks(target, this) && !this._cannotBeBlanked(target)) {
-            target.blanked = true;
+    for (const card of this.nonBlankedCards()) {
+      if (card.blanks !== undefined) {
+        for (const target of this.nonBlankedCards()) {
+          if (card !== target) {
+            if (card.blanks(target)) {
+              target.blanked = true;
+            }
           }
         }
       }
     }
-    var blanked = [];
-    for (const card of this.nonBlankedCards()) {
-      if (this._cardBlanked(card, card)) {
-        blanked.push(card);
-      }
-    }
-    for (const card of blanked) {
-      card.blanked = true;
-    }
+    // TODO: blanking order ok?
     for (const card of this.nonBlankedCards().sort((a, b) => a.id.localeCompare(b.id))) {
-      if (card.blankedIf !== undefined && !card.penaltyCleared) {
-        if (card.blankedIf(this) && !this._cannotBeBlanked(card)) {
+      if (card.blankedIf !== undefined) {
+        if (card.blankedIf(this)) {
           card.blanked = true;
         }
       }
     }
   }
 
-  // a card that is blanked by another card cannot blank other cards,
-  // except when they blank eachother
-  _cardBlanked(card, target) {
-    if (this._cannotBeBlanked(card)) {
-      return false;
-    }
-    for (const by of this.nonBlankedCards()) {
-      if (by.blanks !== undefined && !by.penaltyCleared && by.id !== CH_DEMON && by.blanks(card, this)) {
-        if (by === target || (card.blanks !== undefined && card.blanks(by, this)) || !this._cardBlanked(by, target)) {
-          return true;
+  _transform() {
+    for (const card of this.nonBlankedCards()) {
+      if (card.transform !== undefined) {
+        if (card.transform(this)) {
+          card.name = card.transformedName;
+          card.strength = card.transformedStrength;
+          card.tags = card.transformedTags;
+          card.transformed = true;
         }
       }
     }
-    return false;
-  }
-
-  _cannotBeBlanked(card) {
-    return (card.suit === 'undead' && (this.containsId(CH_LICH, true) || this.containsId(CH_NECROMANCER, true)))
-      || card.id === CH_ANGEL
-      || (card.magic && this.containsId(CH_ANGEL, true) && this.getCardById(CH_ANGEL).actionData && this.getCardById(CH_ANGEL).actionData[0] === card.id);
   }
 
   clear() {
     this.cardsInHand = {};
-    this.cursedItems = {};
   }
 
   size() {
@@ -251,7 +220,7 @@ class Hand {
   }
 
   empty() {
-    return this.size() === 0 && Object.keys(this.cursedItems).length === 0;
+    return this.size() === 0;
   }
 
   limit() {
@@ -261,31 +230,11 @@ class Hand {
         return limit + 1;
       }
     }
-    for (const cursedItem of this.faceDownCursedItems()) {
-      if (cursedItem.extraCard) {
-        return limit + 1;
-      }
-    }
     return limit;
   }
 
   _defaultLimit() {
-    return 7 + (cursedHoardSuits ? 1: 0);
-  }
-
-  _limitWithoutNecromancer() {
-    var limit = this._defaultLimit();
-    for (const card of this.cards()) {
-      if (card.extraCard && ![NECROMANCER, CH_NECROMANCER].includes(card.id)) {
-        return limit + 1;
-      }
-    }
-    for (const cursedItem of this.faceDownCursedItems()) {
-      if (cursedItem.extraCard) {
-        return limit + 1;
-      }
-    }
-    return limit;
+    return 7;
   }
 
   toString() {
@@ -296,7 +245,7 @@ class Hand {
         actions.push(card.id + ':' + card.actionData.join(':'));
       }
     }
-    return Object.keys({...this.cardsInHand, ...this.cursedItems}).join() + '+' + actions.join();
+    return Object.keys(this.cardsInHand).join() + '+' + actions.join();
   }
 
   loadFromString(string) {
@@ -338,102 +287,49 @@ class CardInHand {
     // TODO: is there a better way to copy these properties
     this.id = card.id;
     this.name = card.name;
-    this.suit = card.suit;
+    this.type = card.type;
     this.strength = card.strength;
-    this.bonus = card.bonus;
-    this.penalty = card.penalty;
+    this.tags = card.tags;
+    this.transform = card.transform;
+    this.transformedName = card.transformedName;
+    this.transformedStrength = card.transformedStrength;
+    this.transformedTags = card.transformedTags;
     this.bonusScore = card.bonusScore;
-    this.penaltyScore = card.penaltyScore;
-    this.blanks = card.blanks;
     this.blankedIf = card.blankedIf;
-    this.clearsPenalty = card.clearsPenalty;
-    this.action = card.action;
-    this.relatedSuits = card.relatedSuits;
-    this.relatedCards = card.relatedCards;
-    this.extraCard = card.extraCard;
-    this.referencesPlayerCount = card.referencesPlayerCount;
-    this.referencesDiscardArea = card.referencesDiscardArea;
-    this.impersonator = card.impersonator;
-    this.timing = card.timing;
-    this.cursedItem = card.cursedItem;
+    this.blanks = card.blanks;
 
     this.blanked = false;
-    this.penaltyCleared = false;
-    this.penaltyPoints = 0;
     this.bonusPoints = 0;
     this.magic = false;
+    this.transformed = false;
   }
 
   performCardAction(hand) {
-    if (this.actionData !== undefined) {
-      if (this.id === BOOK_OF_CHANGES) {
-        var target = hand.getCardById(this.actionData[0]);
-        if (target === undefined) {
-          this.actionData = undefined;
-        } else {
-          var suit = this.actionData[1].toLowerCase();
-          target.suit = suit;
-          target.magic = true;
-        }
-      } else if ([SHAPESHIFTER, CH_SHAPESHIFTER, MIRAGE, CH_MIRAGE].includes(this.id)) {
-        var selectedCard = deck.getCardById(this.actionData[0]);
-        this.name = selectedCard.name;
-        this.suit = selectedCard.suit;
-        this.magic = true;
-      } else if (this.id === DOPPELGANGER) {
-        var selectedCard = hand.getCardById(this.actionData[0]);
-        if (selectedCard === undefined) {
-          this.actionData = undefined;
-        } else {
-          this.name = selectedCard.name;
-          this.suit = selectedCard.suit;
-          this.strength = selectedCard.strength;
-          this.penalty = selectedCard.penalty;
-          this.penaltyScore = selectedCard.penaltyScore;
-          this.blanks = selectedCard.blanks;
-          this.blankedIf = selectedCard.blankedIf
-          this.magic = true;
-        }
-      } else if (this.id === ISLAND) {
-        var selectedCard = hand.getCardById(this.actionData[0]);
-        if (selectedCard === undefined || !(selectedCard.suit === 'flood' || selectedCard.suit === 'flame')) {
-          this.actionData = undefined;
-        } else {
-          this.clearsPenalty = function(card) {
-            return card.id === selectedCard.id;
-          }
-          selectedCard.magic = true;
-        }
-      } else if (this.id === CH_ANGEL) {
-        var selectedCard = hand.getCardById(this.actionData[0]);
-        if (selectedCard === undefined) {
-          this.actionData = undefined;
-        } else {
-          selectedCard.magic = true;
-        }
-      }
-    }
   }
 
-  score(hand, discard) {
+  score(hand) {
     if (this.blanked) {
       return 0;
     }
     if (this.bonusScore !== undefined) {
-      this.bonusPoints = this.bonusScore(hand, discard);
+      this.bonusPoints = this.bonusScore(hand);
     } else {
       this.bonusPoints = 0;
     }
-    if (this.penaltyScore !== undefined && !this.penaltyCleared) {
-      this.penaltyPoints = this.penaltyScore(hand, discard);
-    } else {
-      this.penaltyPoints = 0;
-    }
-    return this.strength + this.bonusPoints + this.penaltyPoints;
+    return this.strength + this.bonusPoints;
   }
 
   points() {
-    return this.blanked ? 0 : (this.strength + this.bonusPoints + this.penaltyPoints);
+    return this.blanked ? 0 : (this.strength + this.bonusPoints);
+  }
+
+  hasTag(tagName) {
+    for (const tag of this.tags) {
+      if (tag === tagName) {
+        return true;
+      }
+    }
+    return false;
   }
 
 }

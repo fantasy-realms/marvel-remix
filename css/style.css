@@ -1,19 +1,27 @@
 :root {
-  --land-color: #3b1d13;
-  --flood-color:  #41437c;
-  --weather-color: #a6bced;
-  --flame-color: #b44347;
-  --army-color: #312b2f;
-  --wizard-color: #e056a3;
-  --leader-color: #7b48a4;
-  --beast-color: #60a35c;
-  --weapon-color: #878586;
-  --artifact-color: #d24e37;
+  --tech-color: #cb0c52;
+  --intel-color: #565b6d;
+  --strength-color: #0f9444;
+  --agility-color: #f68b1f;
+  --flight-color: #00a7ea;
+  --range-color: #922790;
+  --wakanda-color: #38002d;
+  --asgard-color: #c59069;
+  --mutant-color: #00487a;
+  --gamma-color: #88ab2d;
+  --worthy-color: #978359;
+  --urban-color: #ec078e;
+  --boss-color: #ee1c25;
+
+  --hero-color: #00a7ea;
+  --ally-color: #922790;
+  --condition-color: #0f9444;
+  --equipment-color: #565b6d;
+  --location-color: #f68b1f;
+  --maneuver-color: #ec078e;
+  --villain-color: #98090c;
+ 
   --wild-color: #c6c2c3;
-  --building-color: #463153;
-  --outsider-color: #fba934;
-  --undead-color: #004e4a;
-  --cursed-item-color: #900c3f;
   --header-border: 6px;
 }
 
@@ -28,7 +36,7 @@ body {
   background-attachment: fixed;
   background-size: cover;
   background-position: center center;
-  background-image: url('../img/background.jpg');
+  background-image: url('../img/background.png');
 }
 
 #container {
@@ -132,124 +140,88 @@ li.list-group-item {
   font-size: 0.9rem;
 }
 
-li.land {
-  background-color: var(--land-color);
+li.hero {
+  background-color: var(--hero-color);
 }
 
-span.land {
-  color: var(--land-color);
+span.hero {
+  color: var(--hero-color);
 }
 
-#land-header {
-  border-right: solid var(--land-color) var(--header-border);
+#hero-header {
+  border-right: solid var(--hero-color) var(--header-border);
 }
 
-li.flood {
-  background-color: var(--flood-color);
+li.ally {
+  background-color: var(--ally-color);
 }
 
-span.flood {
-  color: var(--flood-color);
+span.ally {
+  color: var(--ally-color);
 }
 
-#flood-header {
-  border-right: solid var(--flood-color) var(--header-border);
+#ally-header {
+  border-right: solid var(--ally-color) var(--header-border);
 }
 
-li.weather {
-  background-color: var(--weather-color);
+li.condition {
+  background-color: var(--condition-color);
 }
 
-span.weather {
-  color: var(--weather-color);
+span.condition {
+  color: var(--condition-color);
 }
 
-#weather-header {
-  border-right: solid var(--weather-color) var(--header-border);
+#condition-header {
+  border-right: solid var(--condition-color) var(--header-border);
 }
 
-li.flame {
-  background-color: var(--flame-color);
+li.equipment {
+  background-color: var(--equipment-color);
 }
 
-span.flame {
-  color: var(--flame-color);
+span.equipment {
+  color: var(--equipment-color);
 }
 
-#flame-header {
-  border-right: solid var(--flame-color) var(--header-border);
+#equipment-header {
+  border-right: solid var(--equipment-color) var(--header-border);
 }
 
-li.army {
-  background-color: var(--army-color);
+li.location {
+  background-color: var(--location-color);
 }
 
-span.army {
-  color: var(--army-color);
+span.location {
+  color: var(--location-color);
 }
 
-#army-header {
-  border-right: solid var(--army-color) var(--header-border);
+#location-header {
+  border-right: solid var(--location-color) var(--header-border);
 }
 
-li.wizard {
-  background-color: var(--wizard-color);
+li.maneuver {
+  background-color: var(--maneuver-color);
 }
 
-span.wizard {
-  color: var(--wizard-color);
+span.maneuver {
+  color: var(--maneuver-color);
 }
 
-#wizard-header {
-  border-right: solid var(--wizard-color) var(--header-border);
+#maneuver-header {
+  border-right: solid var(--maneuver-color) var(--header-border);
 }
 
-li.leader {
-  background-color: var(--leader-color);
+li.villain {
+  background-color: var(--villain-color);
 }
 
-span.leader {
-  color: var(--leader-color);
+span.villain {
+  color: var(--villain-color);
 }
 
-#leader-header {
-  border-right: solid var(--leader-color) var(--header-border);
-}
-
-li.beast {
-  background-color: var(--beast-color);
-}
-
-span.beast {
-  color: var(--beast-color);
-}
-
-#beast-header {
-  border-right: solid var(--beast-color) var(--header-border);
-}
-
-li.weapon {
-  background-color: var(--weapon-color);
-}
-
-span.weapon {
-  color: var(--weapon-color);
-}
-
-#weapon-header {
-  border-right: solid var(--weapon-color) var(--header-border);
-}
-
-li.artifact {
-  background-color: var(--artifact-color);
-}
-
-span.artifact {
-  color: var(--artifact-color);
-}
-
-#artifact-header {
-  border-right: solid var(--artifact-color) var(--header-border);
+#villain-header {
+  border-right: solid var(--villain-color) var(--header-border);
 }
 
 li.wild {
@@ -264,66 +236,18 @@ span.wild {
   border-right: solid var(--wild-color) var(--header-border);
 }
 
-li.building {
-  background-color: var(--building-color);
-}
-
-span.building {
-  color: var(--building-color);
-}
-
-#building-header {
-  border-right: solid var(--building-color) var(--header-border);
-}
-
-li.outsider {
-  background-color: var(--outsider-color);
-}
-
-span.outsider {
-  color: var(--outsider-color);
-}
-
-#outsider-header {
-  border-right: solid var(--outsider-color) var(--header-border);
-}
-
-li.undead {
-  background-color: var(--undead-color);
-}
-
-span.undead {
-  color: var(--undead-color);
-}
-
-#undead-header {
-  border-right: solid var(--undead-color) var(--header-border);
-}
-
-li.cursed-item {
-  background-color: var(--cursed-item-color);
-}
-
-span.cursed-item {
-  color: var(--cursed-item-color);
-}
-
-#cursed-item-header {
-  border-right: solid var(--cursed-item-color) var(--header-border);
-}
-
 #cards {
   background-color: #ccc0a8;
 }
 
-#cards .card-header, #hand .card-header, #discard .card-header {
+#cards .card-header, #hand .card-header {
   padding: 0.4rem;
   font-weight: bold;
   background-color: #ccc0a8;
   cursor: pointer;
 }
 
-#hand, #discard, #settings {
+#hand, #settings {
   background-color: #e9e3c6;
   padding: 0.4rem;
   font-weight: bold;
@@ -331,7 +255,7 @@ span.cursed-item {
 
 #settings {
   font-weight: normal;
-  color: var(--army-color);
+  color: var(--equipment-color);
   font-size: small;
 }
 
@@ -339,15 +263,7 @@ span.cursed-item {
   margin-top: 0.5rem;
 }
 
-#discard {
-  display: none;
-}
-
-#discard-header {
-  height: 2.5rem;
-}
-
-#cards li, #hand li, #discard li {
+#cards li, #hand li {
   font-weight: bold;
   padding: 0.4rem;
   cursor: pointer;
@@ -357,17 +273,12 @@ span.cursed-item {
   padding-right: 0;
 }
 
-#hand li.bonus, #hand li.penalty, #hand li.timing {
+#hand li.text {
   background-color: #fffafa;
   color: grey;
   font-weight: normal;
   font-size: 0.8rem;
   border: 0;
-}
-
-#hand li.timing {
-  padding-bottom: 0;
-  margin-bottom: 0;
 }
 
 #hand li span {
@@ -379,7 +290,7 @@ span.cursed-item {
   filter: grayscale(100%);
 }
 
-#hand div.card, #discard div.card {
+#hand div.card {
   margin-bottom: 0.4rem;
   cursor: pointer;
 }
@@ -406,4 +317,72 @@ button {
 
 #cards div.suit-selection {
   background-color: #aed77b;
+}
+
+span.tags {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 4px;
+  padding-bottom: 0;
+  vertical-align: middle;
+}
+
+span.tag::after {
+  background-size: 1rem 1rem;
+  display: inline-block;
+  width: 1rem; 
+  height: 1rem;
+  content:"";
+}
+
+span.tag.tech::after {
+  background-image: url('../icons/TECH.svg');
+}
+
+span.tag.intel::after {
+  background-image: url('../icons/INTEL.svg');
+}
+
+span.tag.strength::after {
+  background-image: url('../icons/STRENGTH.svg');
+}
+
+span.tag.agility::after {
+  background-image: url('../icons/AGILITY.svg');
+}
+
+span.tag.flight::after {
+  background-image: url('../icons/FLIGHT.svg');
+}
+
+span.tag.range::after {
+  background-image: url('../icons/RANGE.svg');
+}
+
+span.tag.wakanda::after {
+  background-image: url('../icons/WAKANDA.svg');
+}
+
+span.tag.asgard::after {
+  background-image: url('../icons/ASGARD.svg');
+}
+
+span.tag.mutant::after {
+  background-image: url('../icons/MUTANT.svg');
+}
+
+span.tag.gamma::after {
+  background-image: url('../icons/GAMMA.svg');
+}
+
+span.tag.worthy::after {
+  background-image: url('../icons/WORTHY.svg');
+}
+
+span.tag.urban::after {
+  background-image: url('../icons/URBAN.svg');
+}
+
+span.tag.boss::after {
+  background-image: url('../icons/BOSS.svg');
 }

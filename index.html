@@ -30,33 +30,32 @@
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="js/handlebars.min-v4.7.7.js"></script>
   <script src="js/deck.js"></script>
-  <script src="js/discard.js"></script>
   <script src="js/hand.js"></script>
   <script src="js/app.js"></script>
 </head>
 
 <body>
   <script id="cards-template" type="text/x-handlebars-template">
-    {{#each suits}}
+    {{#each types}}
     <div class="card">
       <div class="card-header" role="tab" id="{{@key}}-header" data-toggle="collapse" data-target="#{{@key}}" data-parent="#cards" href="#{{@key}}" aria-expanded="false" aria-controls="{{@key}}">
-        <a>{{{i18n 'suit.' @key}}}</a>
+        <a>{{{i18n 'type.' @key}}}</a>
       </div>
       <div id="{{@key}}" class="collapse" role="tabpanel" data-parent="#cards" aria-labelledby="{{@key}}-header">
         <ul class="list-group">
           {{#each this}}
-          <li class="list-group-item {{suit}}" onclick="addToView('{{id}}')"><span class="badge badge-secondary">{{strength}}</span> {{{i18n id '.name'}}}</li>
+          <li class="list-group-item {{type}}" onclick="addToView('{{id}}')"><span class="badge badge-secondary">{{strength}}</span> {{{i18n id '.name'}}}</li>
           {{/each}}
         </ul>
       </div>
     </div>
     {{/each}}
   </script>
-  <script id="suit-selection-template" type="text/x-handlebars-template">
-    {{#each suits}}
+  <script id="type-selection-template" type="text/x-handlebars-template">
+    {{#each types}}
     <div class="card">
-      <div class="card-header suit-selection" onclick="selectSuit('{{this}}')">
-        {{{i18n 'suit.' this}}}
+      <div class="card-header type-selection" onclick="selecttype('{{this}}')">
+        {{{i18n 'type.' this}}}
       </div>
     </div>
     {{/each}}
@@ -65,54 +64,44 @@
     {{#each playerCards}}
     <div id="card-{{id}}" class="card" onclick="selectFromHand('{{id}}')">
       <ul class="list-group">
-        <li class="list-group-item {{suit}} {{#if blanked}}blanked{{/if}}">
+        <li class="list-group-item {{type}} {{#if blanked}}blanked{{/if}}">
           <span class="badge badge-secondary">
             {{#if blanked}}
               {{i18n 'label.blanked'}}
-            {{else}}
+            {{else}}             
               {{strength}}
             {{/if}}
           </span> 
-          {{#if impersonator}}
-            {{#if magic}}
-              {{{i18n actionData.[0] '.name'}}}
-            {{else}}
-              {{{i18n id '.name'}}}
-            {{/if}}
+          {{#if transformed}}
+            {{{i18n id '.transformed.name'}}}
           {{else}}
             {{{i18n id '.name'}}}
           {{/if}}
           {{#if magic}}
           *
           {{/if}}
+          {{#if transformed}}
+          ⇅
+          {{/if}}
+          {{#if tags}}
+          <span class="tags">
+            {{#each tags}}
+              <span class="{{this}} tag"></span>
+            {{/each}}
+          </span>
+          {{/if}}          
           <span class="float-right points">{{points}}</span>
         </li>
-        {{#if timing}}
-        <li class="list-group-item timing">
-          <b>{{{i18n 'timing.' timing}}}:</b>
-        </li>
-        {{/if}}
-        {{#if bonus}}
-        <li class="list-group-item bonus {{#if blanked}}blanked{{/if}}">
-          {{{i18n id '.bonus'}}}
+        <li class="list-group-item text {{#if blanked}}blanked{{/if}}">
+          {{{i18n id '.text'}}}
           {{#if bonusPoints}}
-          <span class="float-right bonus">+{{bonusPoints}}</span>
+            {{#ifPositive bonusPoints}}
+            <span class="float-right bonus">+{{bonusPoints}}</span>
+            {{else}}
+            <span class="float-right penalty">{{bonusPoints}}</span>
+            {{/ifPositive}}
           {{/if}}
         </li>
-        {{/if}}
-        {{#if penalty}}
-        <li class="list-group-item penalty {{#if blanked}}blanked{{/if}} {{#if penaltyCleared}}cleared{{/if}}">
-          {{#if card.penalty}}
-            {{{i18n id '.penalty'}}}
-          {{else}}
-            <!-- Doppelgänger penalty -->
-            {{{i18n actionData.[0] '.penalty'}}}
-          {{/if}}
-          {{#if penaltyPoints}}
-          <span class="float-right penalty">{{penaltyPoints}}</span>
-          {{/if}}
-        </li>
-        {{/if}}
         {{#if card.action}}
         <li class="list-group-item bonus">
             <span id="card-action-text-{{id}}"></span>
@@ -120,36 +109,6 @@
             <button id="card-action-cancel-{{id}}" style="display: none;" type="button" class="btn btn-sm btn-primary float-right" onclick="event.stopPropagation(); cancelCardAction('{{id}}');">{{i18n 'button.cancel'}}</button>
         </li>
         {{/if}}
-        {{#if card.referencesPlayerCount}}
-        <li class="list-group-item bonus">
-          <span id="card-action-text-{{id}}">
-            {{i18n 'label.player-count'}} ({{../playerCount}}):
-            {{#each ../playerCounts}}
-              <button type="button" class="btn btn-sm btn-primary" onclick="event.stopPropagation(); setPlayerCount({{this}});">{{this}}</button>
-            {{/each}}
-          </span>
-        </li>
-        {{/if}}
-        {{#if card.referencesDiscardArea}}
-        <li class="list-group-item bonus">
-          <button type="button" onclick="event.stopPropagation(); switchToDiscardArea('{{id}}');" class="btn btn-sm btn-primary float-right">{{i18n 'button.discard-area'}}</button>
-        </li>
-        {{/if}}
-      </ul>
-    </div>
-    {{/each}}
-  </script>
-  <script id="discard-template" type="text/x-handlebars-template">
-    <div id="discard-header">
-      <span>{{i18n 'label.discard-area'}}</span>
-      <button type="button" onclick="event.stopPropagation(); switchToHand();" class="btn btn-sm btn-primary float-right">{{i18n 'button.back-to-hand'}}</button>
-    </div>
-    {{#each discard}}
-    <div id="discard-{{id}}" class="card" onclick="removeFromDiscard('{{id}}')">
-      <ul class="list-group">
-        <li class="list-group-item {{suit}}">
-          {{i18n id '.name'}}
-        </li>
       </ul>
     </div>
     {{/each}}
@@ -171,17 +130,6 @@
       </div>
       <div id="right">
         <div id="settings" style="display: none;">
-          <img src="img/cursed-hoard.png" style="height: 3.5rem;"></img>
-          <div style="display: inline-block;">
-            <div class="custom-control custom-switch">
-              <input type="checkbox" class="custom-control-input" id="ch_items">
-              <label id="lbl_ch_items" class="custom-control-label" for="ch_items">Cursed Items</label>
-            </div>
-            <div class="custom-control custom-switch">
-              <input type="checkbox" class="custom-control-input" id="ch_suits">
-              <label id="lbl_ch_suits" class="custom-control-label" for="ch_suits">Buildings/Outsiders/Undead</label>
-            </div>
-          </div>
           <div id="language" class="dropdown">
             <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="language-selector" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <img src="img/globe.png" style="height: 1rem;"></img>
@@ -204,8 +152,6 @@
           </div>
         </div>
         <div id="hand">
-        </div>
-        <div id="discard">
         </div>
       </div>
     </main>

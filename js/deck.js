@@ -1,1492 +1,948 @@
-var base = {
-  'FR01': {
-    id: 'FR01',
-    suit: 'land',
-    name: 'Mountain',
-    strength: 9,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Smoke') && hand.contains('Wildfire') ? 50 : 0;
-    },
-    clearsPenalty: function(card) {
-      return card.suit === 'flood';
-    },
-    relatedSuits: ['flood'],
-    relatedCards: ['Smoke', 'Wildfire']
-  },
-  'FR02': {
-    id: 'FR02',
-    suit: 'land',
-    name: 'Cavern',
+var remixCards = {
+  'MR01': {
+    id: 'MR01',
+    type: 'hero',
+    name: 'Angel',
     strength: 6,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Dwarvish Infantry') || hand.contains('Dragon') ? 25 : 0;
-    },
-    clearsPenalty: function(card) {
-      return card.suit === 'weather';
-    },
-    relatedSuits: ['weather'],
-    relatedCards: ['Dwarvish Infantry', 'Dragon']
+    tags: ['agility', 'flight', 'mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR03': {
-    id: 'FR03',
-    suit: 'land',
-    name: 'Bell Tower',
-    strength: 8,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.containsSuit('wizard') ? 15 : 0;
-    },
-    relatedSuits: ['wizard'],
-    relatedCards: []
+  'MR02': {
+    id: 'MR02',
+    type: 'hero',
+    name: 'Beast',
+    strength: 6,
+    tags: ['tech', 'agility', 'mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR04': {
-    id: 'FR04',
-    suit: 'land',
-    name: 'Forest',
-    strength: 7,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 12 * hand.countSuit('beast') + (hand.contains('Elven Archers') ? 12 : 0);
-    },
-    relatedSuits: ['beast'],
-    relatedCards: ['Elven Archers']
-  },
-  'FR05': {
-    id: 'FR05',
-    suit: 'land',
-    name: 'Earth Elemental',
+  'MR03': {
+    id: 'MR03',
+    type: 'hero',
+    name: 'Black Panther',
     strength: 4,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 15 * hand.countSuitExcluding('land', this.id);
-    },
-    relatedSuits: ['land'],
-    relatedCards: []
+    tags: ['agility', 'wakanda'],
+    bonusScore: function (hand) {
+      return 5 * hand.countTagExcluding('wakanda', 'MR03');
+    }
   },
-  'FR06': {
-    id: 'FR06',
-    suit: 'flood',
-    name: 'Fountain of Life',
+  'MR04': {
+    id: 'MR04',
+    type: 'hero',
+    name: 'Black Widow',
+    strength: 6,
+    tags: ['intel', 'agility', 'agility'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR05': {
+    id: 'MR05',
+    type: 'hero',
+    name: 'Bruce Banner',
     strength: 1,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var max = 0;
-      for (const card of hand.nonBlankedCards()) {
-        if (card.suit === 'weapon' || card.suit === 'flood' || card.suit === 'flame' || card.suit === 'land' || card.suit === 'weather') {
-          if (card.strength > max) {
-            max = card.strength;
-          }
-        }
-      }
-      return max;
+    tags: ['tech', 'gamma'],
+    transformedName: 'Hulk',
+    transformedStrength: 13,
+    transformedTags: ['strength', 'strength', 'strength', 'gamma'],
+    transform: function (hand) {
+      return hand.containsTagExcluding('gamma', 'MR05');
     },
-    relatedSuits: ['weapon', 'flood', 'flame', 'land', 'weather'],
-    relatedCards: []
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR07': {
-    id: 'FR07',
-    suit: 'flood',
-    name: 'Swamp',
-    strength: 18,
-    bonus: false,
-    penalty: true,
-    penaltyScore: function(hand) {
-      var penaltyCards = hand.countSuit('flame');
-      if (!isArmyClearedFromPenalty(this, hand)) {
-        penaltyCards += hand.countSuit('army');
-      }
-      return -3 * penaltyCards;
-    },
-    relatedSuits: ['army', 'flame'],
-    relatedCards: []
-  },
-  'FR08': {
-    id: 'FR08',
-    suit: 'flood',
-    name: 'Great Flood',
-    strength: 32,
-    bonus: false,
-    penalty: true,
-    blanks: function(card, hand) {
-      return (card.suit === 'army' && !isArmyClearedFromPenalty(this, hand)) ||
-        (card.suit === 'land' && card.name !== 'Mountain') ||
-        (card.suit === 'flame' && card.name !== 'Lightning');
-    },
-    relatedSuits: ['army', 'land', 'flame'],
-    relatedCards: ['Mountain', 'Lightning']
-  },
-  'FR09': {
-    id: 'FR09',
-    suit: 'flood',
-    name: 'Island',
-    strength: 14,
-    bonus: true,
-    penalty: false,
-    action: true,
-    relatedSuits: ['flood', 'flame'],
-    relatedCards: []
-  },
-  'FR10': {
-    id: 'FR10',
-    suit: 'flood',
-    name: 'Water Elemental',
+  'MR06': {
+    id: 'MR06',
+    type: 'hero',
+    name: 'Captain America',
     strength: 4,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 15 * hand.countSuitExcluding('flood', this.id);
-    },
-    relatedSuits: ['flood'],
-    relatedCards: []
+    tags: ['agility', 'worthy'],
+    bonusScore: function (hand) {
+      return 2 * hand.countTypeExcluding('hero', 'MR06')
+        + (hand.contains('Vibranium Shield') ? 4 : 0);
+    }
   },
-  'FR11': {
-    id: 'FR11',
-    suit: 'weather',
-    name: 'Rainstorm',
-    strength: 8,
-    bonus: true,
-    penalty: true,
-    bonusScore: function(hand) {
-      return 10 * hand.countSuit('flood');
-    },
-    blanks: function(card, hand) {
-      return card.suit === 'flame' && card.name !== 'Lightning';
-    },
-    relatedSuits: ['flood', 'flame'],
-    relatedCards: ['Lightning']
+  'MR07': {
+    id: 'MR07',
+    type: 'hero',
+    name: 'Colossus',
+    strength: 6,
+    tags: ['strength', 'strength', 'mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR12': {
-    id: 'FR12',
-    suit: 'weather',
-    name: 'Blizzard',
-    strength: 30,
-    bonus: false,
-    penalty: true,
-    penaltyScore: function(hand) {
-      var penaltyCards = hand.countSuit('leader') + hand.countSuit('beast') + hand.countSuit('flame');
-      if (!isArmyClearedFromPenalty(this, hand)) {
-        penaltyCards += hand.countSuit('army');
-      }
-      return -5 * penaltyCards;
-    },
-    blanks: function(card, hand) {
-      return card.suit === 'flood';
-    },
-    relatedSuits: ['leader', 'beast', 'flame', 'army', 'flood'],
-    relatedCards: []
-  },
-  'FR13': {
-    id: 'FR13',
-    suit: 'weather',
-    name: 'Smoke',
-    strength: 27,
-    bonus: false,
-    penalty: true,
-    blankedIf: function(hand) {
-      return !hand.containsSuit('flame');
-    },
-    relatedSuits: ['flame'],
-    relatedCards: []
-  },
-  'FR14': {
-    id: 'FR14',
-    suit: 'weather',
-    name: 'Whirlwind',
-    strength: 13,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Rainstorm') && (hand.contains('Blizzard') || hand.contains('Great Flood')) ? 40 : 0;
-    },
-    relatedSuits: ['Rainstorm'],
-    relatedCards: ['Blizzard', 'Great Flood']
-  },
-  'FR15': {
-    id: 'FR15',
-    suit: 'weather',
-    name: 'Air Elemental',
+  'MR08': {
+    id: 'MR08',
+    type: 'hero',
+    name: 'Cyclops',
     strength: 4,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 15 * hand.countSuitExcluding('weather', this.id);
-    },
-    relatedSuits: ['weather'],
-    relatedCards: []
+    tags: ['range', 'mutant'],
+    bonusScore: function (hand) {
+      return 3 * hand.countTagExcluding('mutant', 'MR08');
+    }
   },
-  'FR16': {
-    id: 'FR16',
-    suit: 'flame',
-    name: 'Wildfire',
-    strength: 40,
-    bonus: false,
-    penalty: true,
-    blanks: function(card, hand) {
-      return !(card.suit === 'flame' || card.suit === 'wizard' || card.suit === 'weather' ||
-        card.suit === 'weapon' || card.suit === 'artifact' || card.suit === 'wild' || card.name === 'Mountain' ||
-        card.name === 'Great Flood' || card.name === 'Island' || card.name === 'Unicorn' || card.name === 'Dragon');
-    },
-    relatedSuits: allSuits(),
-    relatedCards: ['Mountain', 'Great Flood', 'Island', 'Unicorn', 'Dragon']
+  'MR09': {
+    id: 'MR09',
+    type: 'hero',
+    name: 'Falcon',
+    strength: 6,
+    tags: ['tech', 'flight', 'range'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR17': {
-    id: 'FR17',
-    suit: 'flame',
-    name: 'Candle',
+  'MR10': {
+    id: 'MR10',
+    type: 'hero',
+    name: 'Hawkeye',
+    strength: 5,
+    tags: ['tech', 'range', 'range'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR11': {
+    id: 'MR11',
+    type: 'hero',
+    name: 'Jean Grey',
+    strength: 3,
+    tags: ['intel', 'range', 'mutant'],
+    transformedName: 'Phoenix',
+    transformedStrength: 9,
+    transformedTags: ['intel', 'range', 'range', 'flight', 'mutant'],
+    transform: function (hand) {
+      return hand.countTagExcluding('mutant', 'MR11') >= 2;
+    },
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR12': {
+    id: 'MR12',
+    type: 'hero',
+    name: 'Professor X',
+    strength: 3,
+    tags: ['intel', 'mutant'],
+    bonusScore: function (hand) {
+      return (hand.contains('Cerebro') ? 6 : 0)
+        + (hand.contains('Xavier Mansion') ? 6 : 0);
+    }
+  },
+  'MR13': {
+    // TODO
+    id: 'MR13',
+    type: 'hero',
+    name: 'Rogue',
+    strength: 0,
+    tags: ['mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR14': {
+    id: 'MR14',
+    type: 'hero',
+    name: 'Shadowcat',
+    strength: 4,
+    tags: ['tech', 'mutant'],
+    bonusScore: function (hand) {
+      return hand.countType('location') ? 4 : 0;
+    }
+  },
+  'MR15': {
+    id: 'MR15',
+    type: 'hero',
+    name: 'She-Hulk',
+    strength: 4,
+    tags: ['strength', 'gamma'],
+    bonusScore: function (hand) {
+      return 5 * (hand.countTagExcluding('gamma', 'MR15'));
+    }
+  },
+  'MR16': {
+    // TODO
+    id: 'MR16',
+    type: 'hero',
+    name: 'Shuri',
     strength: 2,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Book of Changes') && hand.contains('Bell Tower') && hand.containsSuit('wizard') ? 100 : 0;
-    },
-    relatedSuits: ['wizard'],
-    relatedCards: ['Book of Changes', 'Bell Tower']
+    tags: ['tech', 'wakanda'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR18': {
-    id: 'FR18',
-    suit: 'flame',
-    name: 'Forge',
-    strength: 9,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 9 * (hand.countSuit('weapon') + hand.countSuit('artifact'));
-    },
-    relatedSuits: ['weapon', 'artifact'],
-    relatedCards: []
-  },
-  'FR19': {
-    id: 'FR19',
-    suit: 'flame',
-    name: 'Lightning',
-    strength: 11,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Rainstorm') ? 30 : 0;
-    },
-    relatedSuits: [],
-    relatedCards: ['Rainstorm']
-  },
-  'FR20': {
-    id: 'FR20',
-    suit: 'flame',
-    name: 'Fire Elemental',
-    strength: 4,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 15 * hand.countSuitExcluding('flame', this.id);
-    },
-    relatedSuits: ['flame'],
-    relatedCards: []
-  },
-  'FR21': {
-    id: 'FR21',
-    suit: 'army',
-    name: 'Knights',
-    strength: 20,
-    bonus: false,
-    penalty: true,
-    penaltyScore: function(hand) {
-      return hand.containsSuit('leader') ? 0 : -8;
-    },
-    relatedSuits: ['leader'],
-    relatedCards: []
-  },
-  'FR22': {
-    id: 'FR22',
-    suit: 'army',
-    name: 'Elven Archers',
-    strength: 10,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.containsSuit('weather') ? 0 : 5;
-    },
-    relatedSuits: ['weather'],
-    relatedCards: []
-  },
-  'FR23': {
-    id: 'FR23',
-    suit: 'army',
-    name: 'Light Cavalry',
-    strength: 17,
-    bonus: false,
-    penalty: true,
-    penaltyScore: function(hand) {
-      return -2 * hand.countSuit('land');
-    },
-    relatedSuits: ['land'],
-    relatedCards: []
-
-  },
-  'FR24': {
-    id: 'FR24',
-    suit: 'army',
-    name: 'Dwarvish Infantry',
-    strength: 15,
-    bonus: false,
-    penalty: true,
-    penaltyScore: function(hand) {
-      if (!isArmyClearedFromPenalty(this, hand)) {
-        return -2 * hand.countSuitExcluding('army', this.id);
+  'MR17': {
+    id: 'MR17',
+    type: 'hero',
+    name: 'Spider-Man',
+    strength: 5,
+    tags: ['strength', 'agility'],
+    bonusScore: function (hand) {
+      if (hand.containsTypeWithTag('location', 'urban')) {
+        // TODO add flight
+        return 5;
       }
       return 0;
-    },
-    relatedSuits: ['army'],
-    relatedCards: []
+    }
   },
-  'FR25': {
-    id: 'FR25',
-    suit: 'army',
-    name: 'Rangers',
-    strength: 5,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 10 * hand.countSuit('land');
-    },
-    relatedSuits: ['land', 'army'],
-    relatedCards: []
-  },
-  'FR26': {
-    id: 'FR26',
-    suit: 'wizard',
-    name: 'Collector',
-    strength: 7,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var bySuit = {};
-      for (const card of hand.nonBlankedCards()) {
-        var suit = card.suit;
-        if (bySuit[suit] === undefined) {
-          bySuit[suit] = {};
-        }
-        bySuit[suit][card.name] = card;
-      }
-      var bonus = 0;
-      for (const suit of Object.values(bySuit)) {
-        var count = Object.keys(suit).length;
-        if (count === 3) {
-          bonus += 10;
-        } else if (count === 4) {
-          bonus += 40;
-        } else if (count >= 5) {
-          bonus += 100;
-        }
-      }
-      return bonus;
-    },
-    relatedSuits: allSuits(),
-    relatedCards: []
-  },
-  'FR27': {
-    id: 'FR27',
-    suit: 'wizard',
-    name: 'Beastmaster',
-    strength: 9,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 9 * hand.countSuit('beast');
-    },
-    clearsPenalty: function(card) {
-      return card.suit === 'beast';
-    },
-    relatedSuits: ['beast'],
-    relatedCards: []
-  },
-  'FR28': {
-    id: 'FR28',
-    suit: 'wizard',
-    name: 'Necromancer',
-    strength: 3,
-    bonus: true,
-    penalty: false,
-    relatedSuits: ['army', 'leader', 'wizard', 'beast'],
-    relatedCards: [],
-    extraCard: true
-  },
-  'FR29': {
-    id: 'FR29',
-    suit: 'wizard',
-    name: 'Warlock Lord',
-    strength: 25,
-    bonus: false,
-    penalty: true,
-    penaltyScore: function(hand) {
-      return -10 * (hand.countSuit('leader') + hand.countSuitExcluding('wizard', this.id));
-    },
-    relatedSuits: ['leader', 'wizard'],
-    relatedCards: []
-  },
-  'FR30': {
-    id: 'FR30',
-    suit: 'wizard',
-    name: 'Enchantress',
-    strength: 5,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 5 * (hand.countSuit('land') + hand.countSuit('weather') + hand.countSuit('flood') + hand.countSuit('flame'));
-    },
-    relatedSuits: ['land', 'weather', 'flood', 'flame'],
-    relatedCards: []
-  },
-  'FR31': {
-    id: 'FR31',
-    suit: 'leader',
-    name: 'King',
-    strength: 8,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return (hand.contains('Queen') ? 20 : 5) * hand.countSuit('army');
-    },
-    relatedSuits: ['army'],
-    relatedCards: ['Queen']
-  },
-  'FR32': {
-    id: 'FR32',
-    suit: 'leader',
-    name: 'Queen',
-    strength: 6,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return (hand.contains('King') ? 20 : 5) * hand.countSuit('army');
-    },
-    relatedSuits: ['army'],
-    relatedCards: ['King']
-  },
-  'FR33': {
-    id: 'FR33',
-    suit: 'leader',
-    name: 'Princess',
-    strength: 2,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 8 * (hand.countSuit('army') + hand.countSuit('wizard') + hand.countSuitExcluding('leader', this.id));
-    },
-    relatedSuits: ['army', 'wizard', 'leader'],
-    relatedCards: []
-  },
-  'FR34': {
-    id: 'FR34',
-    suit: 'leader',
-    name: 'Warlord',
+  'MR18': {
+    id: 'MR18',
+    type: 'hero',
+    name: 'Storm',
     strength: 4,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var total = 0;
-      for (const card of hand.nonBlankedCards()) {
-        if (card.suit === 'army') {
-          total += card.strength;
-        }
-      }
-      return total;
-    },
-    relatedSuits: ['army'],
-    relatedCards: []
+    tags: ['flight', 'range', 'mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR35': {
-    id: 'FR35',
-    suit: 'leader',
-    name: 'Empress',
-    strength: 15,
-    bonus: true,
-    penalty: true,
-    bonusScore: function(hand) {
-      return 10 * hand.countSuit('army');
-    },
-    penaltyScore: function(hand) {
-      return -5 * hand.countSuitExcluding('leader', this.id);
-    },
-    relatedSuits: ['army', 'leader'],
-    relatedCards: []
-  },
-  'FR36': {
-    id: 'FR36',
-    suit: 'beast',
-    name: 'Unicorn',
-    strength: 9,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Princess') ? 30 : (hand.contains('Empress') || hand.contains('Queen') || hand.contains('Enchantress')) ? 15 : 0;
-    },
-    relatedSuits: [],
-    relatedCards: ['Princess', 'Empress', 'Queen', 'Enchantress']
-  },
-  'FR37': {
-    id: 'FR37',
-    suit: 'beast',
-    name: 'Basilisk',
-    strength: 35,
-    bonus: false,
-    penalty: true,
-    blanks: function(card, hand) {
-      return (card.suit === 'army' && !isArmyClearedFromPenalty(this, hand)) ||
-        card.suit === 'leader' ||
-        (card.suit === 'beast' && card.id !== this.id);
-    },
-    relatedSuits: ['army', 'leader', 'beast'],
-    relatedCards: []
-  },
-  'FR38': {
-    id: 'FR38',
-    suit: 'beast',
-    name: 'Warhorse',
-    strength: 6,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.containsSuit('leader') || hand.containsSuit('wizard') ? 14 : 0;
-    },
-    relatedSuits: ['leader', 'wizard'],
-    relatedCards: []
-  },
-  'FR39': {
-    id: 'FR39',
-    suit: 'beast',
-    name: 'Dragon',
-    strength: 30,
-    bonus: false,
-    penalty: true,
-    penaltyScore: function(hand) {
-      return hand.containsSuit('wizard') ? 0 : -40;
-    },
-    relatedSuits: ['wizard'],
-    relatedCards: []
-  },
-  'FR40': {
-    id: 'FR40',
-    suit: 'beast',
-    name: 'Hydra',
-    strength: 12,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Swamp') ? 28 : 0;
-    },
-    relatedSuits: [],
-    relatedCards: ['Swamp']
-  },
-  'FR41': {
-    id: 'FR41',
-    suit: 'weapon',
-    name: 'Warship',
-    strength: 23,
-    bonus: true,
-    penalty: true,
-    blankedIf: function(hand) {
-      return !hand.containsSuit('flood');
-    },
-    relatedSuits: ['army', 'flood'],
-    relatedCards: []
-  },
-  'FR42': {
-    id: 'FR42',
-    suit: 'weapon',
-    name: 'Magic Wand',
-    strength: 1,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.containsSuit('wizard') ? 25 : 0;
-    },
-    relatedSuits: ['wizard'],
-    relatedCards: []
-  },
-  'FR43': {
-    id: 'FR43',
-    suit: 'weapon',
-    name: 'Sword of Keth',
-    strength: 7,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.containsSuit('leader') ? (hand.contains('Shield of Keth') ? 40 : 10) : 0;
-    },
-    relatedSuits: ['leader'],
-    relatedCards: ['Shield of Keth']
-  },
-  'FR44': {
-    id: 'FR44',
-    suit: 'weapon',
-    name: 'Elven Longbow',
-    strength: 3,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.contains('Elven Archers') || hand.contains('Warlord') || hand.contains('Beastmaster') ? 30 : 0;
-    },
-    relatedSuits: [],
-    relatedCards: ['Elven Archers', 'Warlord', 'Beastmaster']
-  },
-  'FR45': {
-    id: 'FR45',
-    suit: 'weapon',
-    name: 'War Dirigible',
-    strength: 35,
-    bonus: false,
-    penalty: true,
-    blankedIf: function(hand) {
-      return (!hand.containsSuit('army') && !isArmyClearedFromPenalty(this, hand)) || hand.containsSuit('weather');
-    },
-    relatedSuits: ['army', 'weather'],
-    relatedCards: []
-  },
-  'FR46': {
-    id: 'FR46',
-    suit: 'artifact',
-    name: 'Shield of Keth',
+  'MR19': {
+    id: 'MR19',
+    type: 'hero',
+    name: 'Thor Odinson',
     strength: 4,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return hand.containsSuit('leader') ? (hand.contains('Sword of Keth') ? 40 : 15) : 0;
+    tags: ['strength', 'asgard', 'worthy'],
+    transformedName: 'God of Thunder',
+    transformedStrength: 12,
+    transformedTags: ['strength', 'flight', 'range', 'asgard', 'worthy'],
+    transform: function (hand) {
+      return hand.contains('Mjolnir') || hand.countType('ally') >= 2;
     },
-    relatedSuits: ['leader'],
-    relatedCards: ['Sword of Keth']
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR47': {
-    id: 'FR47',
-    suit: 'artifact',
-    name: 'Gem of Order',
-    strength: 5,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var strengths = hand.nonBlankedCards().map(card => card.strength);
-      var currentRun = 0;
-      var runs = [];
-      for (var i = 0; i <= 40; i++) {
-        if (strengths.includes(i)) {
-          currentRun++;
-        } else {
-          runs.push(currentRun);
-          currentRun = 0;
-        }
-      }
-      var bonus = 0;
-      for (var run of runs) {
-        if (run === 3) {
-          bonus += 10;
-        } else if (run === 4) {
-          bonus += 30;
-        } else if (run === 5) {
-          bonus += 60;
-        } else if (run === 6) {
-          bonus += 100;
-        } else if (run >= 7) {
-          bonus += 150;
-        }
-      }
-      return bonus;
-    },
-    relatedSuits: [],
-    relatedCards: []
-  },
-  'FR48': {
-    id: 'FR48',
-    suit: 'artifact',
-    name: 'World Tree',
-    strength: 2,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var suits = [];
-      for (const card of hand.nonBlankedCards()) {
-        if (suits.includes(card.suit)) {
-          return 0;
-        }
-        suits.push(card.suit);
-      }
-      return 50;
-    },
-    relatedSuits: allSuits(),
-    relatedCards: []
-  },
-  'FR49': {
-    id: 'FR49',
-    suit: 'artifact',
-    name: 'Book of Changes',
+  'MR20': {
+    id: 'MR20',
+    type: 'hero',
+    name: 'Tony Stark',
     strength: 3,
-    bonus: true,
-    penalty: false,
-    action: true,
-    relatedSuits: [], // empty because the main reason for relatedSuits is to determine how to use 'Book of Changes'
-    relatedCards: []
-  },
-  'FR50': {
-    id: 'FR50',
-    suit: 'artifact',
-    name: 'Protection Rune',
-    strength: 1,
-    bonus: true,
-    penalty: false,
-    clearsPenalty: function(card) {
-      return true;
+    tags: ['tech', 'range'],
+    transformedName: 'Iron Man',
+    transformedStrength: 8,
+    transformedTags: ['tech', 'strength', 'flight', 'range'],
+    transform: function (hand) {
+      return hand.countTag('intel') >= 2;
     },
-    relatedSuits: [],
-    relatedCards: []
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'FR51': {
-    id: 'FR51',
-    suit: 'wild',
-    name: 'Shapeshifter',
-    strength: 0,
-    bonus: true,
-    penalty: false,
-    impersonator: true,
-    action: true,
-    relatedSuits: ['artifact', 'leader', 'wizard', 'weapon', 'beast'].sort(),
-    relatedCards: []
-  },
-  'FR52': {
-    id: 'FR52',
-    suit: 'wild',
-    name: 'Mirage',
-    strength: 0,
-    bonus: true,
-    penalty: false,
-    impersonator: true,
-    action: true,
-    relatedSuits: ['army', 'land', 'weather', 'flood', 'flame'].sort(),
-    relatedCards: []
-  },
-  'FR53': {
-    id: 'FR53',
-    suit: 'wild',
-    name: 'Doppelgänger',
-    strength: 0,
-    bonus: true,
-    penalty: false,
-    impersonator: true,
-    action: true,
-    relatedSuits: [],
-    relatedCards: []
-  },
-  'FR54': {
-    id: 'FR54',
-    suit: 'wizard',
-    name: 'Jester',
-    strength: 3,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var oddCount = 0;
-      for (const card of hand.nonBlankedCards()) {
-        if (card.strength % 2 === 1) {
-          oddCount++;
-        }
-      }
-      if (oddCount === hand.size()) {
-        return 50;
-      } else {
-        return (oddCount - 1) * 3;
-      }
-    },
-    relatedSuits: [],
-    relatedCards: []
-  }
-};
-
-var cursedHoard = {
-  'CH01': {
-    id: 'CH01',
-    suit: 'building',
-    name: 'Dungeon',
+  'MR21': {
+    id: 'MR21',
+    type: 'hero',
+    name: 'Valkyrie',
     strength: 7,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return (hand.containsSuit('undead') ? 10 + (hand.countSuit('undead') - 1) * 5: 0) +
-        (hand.containsSuit('beast') ? 10 + (hand.countSuit('beast') - 1) * 5: 0) +
-        (hand.containsSuit('artifact') ? 10 + (hand.countSuit('artifact') - 1) * 5: 0) +
-        (hand.countCardName('Necromancer') * 5) +
-        (hand.countCardName('Warlock Lord') * 5) +
-        (hand.countCardName('Demon') * 5);
-    },
-    relatedSuits: ['undead', 'beast', 'artifact'],
-    relatedCards: ['Necromancer', 'Warlock Lord', 'Demon']
+    tags: ['strength', 'flight', 'asgard'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'CH02': {
-    id: 'CH02',
-    suit: 'building',
-    name: 'Castle',
-    strength: 10,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return (hand.containsSuit('leader') ? 10: 0) +
-        (hand.containsSuit('army') ? 10: 0) +
-        (hand.containsSuit('land') ? 10: 0) +
-        (hand.containsSuitExcluding('building', this.id) ? 10 + (hand.countSuitExcluding('building', this.id) - 1) * 5: 0);
-    },
-    relatedSuits: ['leader', 'army', 'land', 'building'],
-    relatedCards: []
+  'MR22': {
+    id: 'MR22',
+    type: 'hero',
+    name: 'Vision',
+    strength: 3,
+    tags: ['worthy'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'CH03': {
-    id: 'CH03',
-    suit: 'building',
-    name: 'Crypt',
-    strength: 21,
-    bonus: true,
-    penalty: true,
-    bonusScore: function(hand) {
-      var total = 0;
-      for (const card of hand.nonBlankedCards()) {
-        if (card.suit === 'undead') {
-          total += card.strength;
-        }
-      }
-      return total;
-    },
-    blanks: function(card, hand) {
-      return card.suit === 'leader';
-    },
-    relatedSuits: ['undead', 'leader'],
-    relatedCards: []
+  'MR23': {
+    id: 'MR23',
+    type: 'hero',
+    name: 'Wolverine',
+    strength: 4,
+    tags: ['agility', 'mutant'],
+    bonusScore: function (hand) {
+      return hand.containsTypeWithTag('villain', 'boss') ? 6 : 0;
+    }
   },
-  'CH04': {
-    id: 'CH04',
-    suit: 'building',
-    name: 'Chapel',
-    strength: 2,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      if (hand.countSuit('leader') + hand.countSuit('wizard') + hand.countSuit('outsider') + hand.countSuit('undead') === 2) {
-        return 40;
-      } else {
-        return 0;
-      }
-    },
-    relatedSuits: ['leader', 'wizard', 'outsider', 'undead'],
-    relatedCards: []
+  'MR24': {
+    id: 'MR24',
+    type: 'ally',
+    name: 'Dora Milaje',
+    strength: 6,
+    tags: ['intel', 'agility', 'wakanda'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'CH05': {
-    id: 'CH05',
-    suit: 'land',
-    name: 'Garden',
-    strength: 11,
-    bonus: true,
-    penalty: true,
-    bonusScore: function(hand) {
-      return 11 * (hand.countSuit('leader') + hand.countSuit('beast'));
-    },
-    blankedIf: function(hand) {
-      return hand.containsSuit('undead') || hand.contains('Necromancer') || hand.contains('Demon');
-    },
-    relatedSuits: ['leader', 'beast', 'undead'],
-    relatedCards: ['Necromancer', 'Demon']
+  'MR25': {
+    id: 'MR25',
+    type: 'ally',
+    name: 'Forge',
+    strength: 4,
+    tags: ['tech', 'mutant'],
+    bonusScore: function (hand) {
+      return 4 * hand.countType('equipment');
+    }
   },
-  'CH06': {
-    id: 'CH06',
-    suit: 'outsider',
-    name: 'Genie',
-    strength: -50,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 10 * (playerCount - 1);
-    },
-    relatedSuits: [],
-    relatedCards: ['Leprechaun'],
-    extraCard: true,
-    referencesPlayerCount: true
+  'MR26': {
+    id: 'MR26',
+    type: 'ally',
+    name: 'Hulk Operations',
+    strength: 4,
+    tags: ['tech', 'range', 'gamma'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'CH07': {
-    id: 'CH07',
-    suit: 'outsider',
-    name: 'Judge',
-    strength: 11,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var bonus = 0;
-      for (const card of hand.nonBlankedCards()) {
-        if (card.penalty && !card.penaltyCleared) {
-          bonus += 10;
-        }
-      }
-      return bonus;
-    },
-    relatedSuits: [],
-    relatedCards: []
+  'MR27': {
+    id: 'MR27',
+    type: 'ally',
+    name: 'Heimdall',
+    strength: 4,
+    tags: ['intel', 'asgard'],
+    bonusScore: function (hand) {
+      return hand.contains('Bifrost') ? 6 : 0;
+    }
   },
-  'CH08': {
-    id: 'CH08',
-    suit: 'outsider',
-    name: 'Angel',
+  'MR28': {
+    id: 'MR28',
+    type: 'ally',
+    name: 'Jane Foster',
+    strength: 5,
+    tags: ['tech', 'worthy'],
+    bonusScore: function (hand) {
+      return (hand.contains('Thor Odinson') || hand.contains('God of Thunder')) ? 8 : 0;
+    }
+  },
+  'MR29': {
+    id: 'MR29',
+    type: 'ally',
+    name: 'Lockheed',
+    strength: 5,
+    tags: ['flight', 'range'],
+    bonusScore: function (hand) {
+      return hand.contains('Shadowcat') ? 7 : 0;
+    }
+  },
+  'MR30': {
+    // TODO
+    id: 'MR30',
+    type: 'ally',
+    name: 'Moira Mactaggert',
+    strength: 3,
+    tags: ['tech', 'intel'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR31': {
+    id: 'MR31',
+    type: 'condition',
+    name: 'Assembled',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 4 * hand.countType('hero');
+    }
+  },
+  'MR32': {
+    // TODO
+    id: 'MR32',
+    type: 'condition',
+    name: 'Berserk',
+    strength: 18,
+    tags: ['strength', 'gamma'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR33': {
+    id: 'MR33',
+    type: 'condition',
+    name: 'Fearless',
     strength: 16,
-    bonus: true,
-    action: true,
-    penalty: false,
-    relatedSuits: [],
-    relatedCards: []
-  },
-  'CH09': {
-    id: 'CH09',
-    suit: 'outsider',
-    name: 'Leprechaun',
-    strength: 20,
-    bonus: true,
-    penalty: false,
-    relatedSuits: [],
-    relatedCards: [],
-    extraCard: true
-  },
-  'CH10': {
-    id: 'CH10',
-    suit: 'outsider',
-    name: 'Demon',
-    strength: 45,
-    bonus: false,
-    penalty: true,
-    blanks: function(card, hand) {
-      return card.suit !== 'outsider' && hand.countSuit(card.suit) === 1;
+    tags: ['agility'],
+    bonusScore: function (hand) {
+      return 0;
     },
-    relatedSuits: ['outsider'],
-    relatedCards: []
+    blankedIf: function (hand) {
+      return hand.countType('hero') > 1;
+    }
   },
-  'CH11': {
-    id: 'CH11',
-    suit: 'undead',
-    name: 'Dark Queen',
-    strength: 10,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand, discard) {
-      return (5 * (discard.countSuit('land') + discard.countSuit('flood') + discard.countSuit('flame') + discard.countSuit('weather')))
-        + (discard.contains('Unicorn') ? 5 : 0);
-    },
-    relatedSuits: ['land', 'flood', 'flame', 'weather'],
-    relatedCards: ['Unicorn'],
-    referencesDiscardArea: true
-  },
-  'CH12': {
-    id: 'CH12',
-    suit: 'undead',
-    name: 'Ghoul',
+  'MR34': {
+    id: 'MR34',
+    type: 'condition',
+    name: 'Secret ID',
     strength: 8,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand, discard) {
-      return 4 * (discard.countSuit('wizard') + discard.countSuit('leader') + discard.countSuit('army') + discard.countSuit('beast') + discard.countSuit('undead'));
+    tags: ['intel'],
+    bonusScore: function (hand) {
+      return 0;
     },
-    relatedSuits: ['wizard', 'leader', 'army', 'beast', 'undead'],
-    relatedCards: [],
-    referencesDiscardArea: true
+    blankedIf: function (hand) {
+      return !(hand.containsType('hero') && hand.containsTypeWithTag('location', 'urban'));
+    }
   },
-  'CH13': {
-    id: 'CH13',
-    suit: 'undead',
-    name: 'Specter',
-    strength: 12,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand, discard) {
-      return 6 * (discard.countSuit('wizard') + discard.countSuit('artifact') + discard.countSuit('outsider'));
+  'MR35': {
+    id: 'MR35',
+    type: 'condition',
+    name: 'Worthy',
+    strength: 11,
+    tags: ['worthy'],
+    bonusScore: function (hand) {
+      return 0;
     },
-    relatedSuits: ['wizard', 'artifact', 'outsider'],
-    relatedCards: [],
-    referencesDiscardArea: true
-  },
-  'CH14': {
-    id: 'CH14',
-    suit: 'undead',
-    name: 'Lich',
-    strength: 13,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return (hand.contains('Necromancer') ? 10 : 0) + 10 * hand.countSuitExcluding('undead', this.id);
-    },
-    relatedSuits: ['undead'],
-    relatedCards: ['Necromancer']
-  },
-  'CH15': {
-    id: 'CH15',
-    suit: 'undead',
-    name: 'Death Knight',
-    strength: 14,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand, discard) {
-      return 7 * (discard.countSuit('weapon') + discard.countSuit('army'));
-    },
-    relatedSuits: ['weapon', 'army'],
-    relatedCards: [],
-    referencesDiscardArea: true
-  },
-  'CH16': {
-    id: 'CH16',
-    suit: 'building',
-    name: 'Bell Tower',
-    replaces: 'FR03',
-    strength: 8,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return (hand.containsSuit('wizard') || hand.containsSuit('undead')) ? 15 : 0;
-    },
-    relatedSuits: ['wizard', 'undead'],
-    relatedCards: []
-  },
-  'CH17': {
-    id: 'CH17',
-    suit: 'flood',
-    name: 'Fountain of Life',
-    replaces: 'FR06',
-    strength: 1,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var max = 0;
+    blankedIf: function (hand) {
       for (const card of hand.nonBlankedCards()) {
-        if (card.suit === 'building' || card.suit === 'weapon' || card.suit === 'flood' || card.suit === 'flame' || card.suit === 'land' || card.suit === 'weather') {
-          if (card.strength > max) {
-            max = card.strength;
+        if (card.type === 'villain' && card.strength > 12) {
+          return false;
+        }
+      }
+      return true;
+    }
+  },
+  'MR36': {
+    id: 'MR36',
+    type: 'equipment',
+    name: 'Arc Reactor',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 9 * hand.countTag('tech');
+    }
+  },
+  'MR37': {
+    // TODO
+    id: 'MR37',
+    type: 'equipment',
+    name: 'X-Jet',
+    strength: 7,
+    tags: [],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR38': {
+    id: 'MR38',
+    type: 'equipment',
+    name: 'Cerebro',
+    strength: 8,
+    tags: ['intel'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR39': {
+    id: 'MR39',
+    type: 'equipment',
+    name: 'Spear of Bashenga',
+    strength: 0,
+    tags: ['wakanda'],
+    bonusScore: function (hand) {
+      return 7 *
+        (hand.countTypeExcluding('equipment', 'MR39')
+          + hand.countTagExcluding('wakanda', 'MR39'));
+    }
+  },
+  'MR40': {
+    id: 'MR40',
+    type: 'equipment',
+    name: 'Mjolnir',
+    strength: 10,
+    tags: ['flight', 'range', 'asgard'],
+    bonusScore: function (hand) {
+      return 0;
+    },
+    blankedIf: function (hand) {
+      return !(hand.contains('Worthy') || hand.containsTypeWithTag('hero', 'worthy') || hand.containsTypeWithTag('ally', 'worthy'));
+    }
+  },
+  'MR41': {
+    id: 'MR41',
+    type: 'equipment',
+    name: 'Vibranium Shield',
+    strength: 9,
+    tags: ['strength', 'range'],
+    bonusScore: function (hand) {
+      return 0;
+    },
+    blankedIf: function () {
+      return !hand.containsTypeWithTag('hero', 'agility');
+    }
+  },
+  'MR42': {
+    id: 'MR42',
+    type: 'location',
+    name: 'Bifrost',
+    strength: 0,
+    tags: ['asgard'],
+    bonusScore: function (hand) {
+      return hand.containsTypeExcluding('location', 'MR42') ? 11 : 0;
+    }
+  },
+  'MR43': {
+    id: 'MR43',
+    type: 'location',
+    name: 'Birnin Zana',
+    strength: 0,
+    tags: ['tech', 'wakanda', 'urban'],
+    bonusScore: function (hand) {
+      return 7 * hand.countTagExcluding('wakanda', 'MR43');
+    }
+  },
+  'MR44': {
+    id: 'MR44',
+    type: 'location',
+    name: 'Falling Debris',
+    strength: 0,
+    tags: ['urban'],
+    bonusScore: function (hand) {
+      return 4 * (hand.countTag('strength') + hand.countTag('flight'));
+    }
+  },
+  'MR45': {
+    id: 'MR45',
+    type: 'location',
+    name: 'Factory',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 5 * (hand.countTag('tech') + hand.countTag('agility'));
+    }
+  },
+  'MR46': {
+    id: 'MR46',
+    type: 'location',
+    name: 'Halls of Asgard',
+    strength: 0,
+    tags: ['asgard', 'urban'],
+    bonusScore: function (hand) {
+      return 9 * hand.countTagExcluding('asgard', 'MR46');
+    }
+  },
+  'MR47': {
+    // TODO
+    id: 'MR47',
+    type: 'location',
+    name: 'Hidden Lair',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR48': {
+    id: 'MR48',
+    type: 'location',
+    name: 'High Speed Chase',
+    strength: 0,
+    tags: ['urban'],
+    bonusScore: function (hand) {
+      return 3 * (hand.countTag('agility') + hand.countTag('flight') + hand.countTag('range'));
+    }
+  },
+  'MR49': {
+    id: 'MR49',
+    type: 'location',
+    name: 'Krokoa, the Living Island',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 5 * hand.countTag('mutant');
+    }
+  },
+  'MR50': {
+    id: 'MR50',
+    type: 'location',
+    name: 'Madripoor',
+    strength: 0,
+    tags: ['urban'],
+    bonusScore: function (hand) {
+      return 8 * hand.countTag('intel');
+    }
+  },
+  'MR51': {
+    id: 'MR51',
+    type: 'location',
+    name: 'Remote Fortress',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 0;
+    },
+    blankedIf: function (hand) {
+      return !hand.containsTypeWithTag('villain', 'boss');
+    }
+  },
+  'MR52': {
+    id: 'MR52',
+    type: 'location',
+    name: 'Runaway Train',
+    strength: 0,
+    tags: ['urban'],
+    bonusScore: function (hand) {
+      return 4 * (hand.countTag('strength') + hand.countTag('tech'));
+    }
+  },
+  'MR53': {
+    id: 'MR53',
+    type: 'location',
+    name: 'Skyscraper',
+    strength: 0,
+    tags: ['urban'],
+    bonusScore: function (hand) {
+      return 4 * (hand.countTag('agility') + hand.countTag('flight'));
+    }
+  },
+  'MR54': {
+    // TODO
+    id: 'MR54',
+    type: 'location',
+    name: 'Xavier Mansion',
+    strength: 4,
+    tags: [],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR55': {
+    id: 'MR55',
+    type: 'maneuver',
+    name: 'Avoid Crossfire',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      var cardsWithRange = 0;
+      var rangeTags = 0;
+      for (const card of hand.nonBlankedCards()) {
+        if (card.hasTag('range')) {
+          cardsWithRange++;
+          for (const tag of card.tags) {
+            if (tag === 'range') {
+              rangeTags++;
+            }
           }
         }
       }
-      return max;
-    },
-    relatedSuits: ['building', 'weapon', 'flood', 'flame', 'land', 'weather'],
-    relatedCards: []
-  },
-  'CH18': {
-    id: 'CH18',
-    suit: 'flood',
-    name: 'Great Flood',
-    replaces: 'FR08',
-    strength: 32,
-    bonus: false,
-    penalty: true,
-    blanks: function(card, hand) {
-      return (card.suit === 'army' && !isArmyClearedFromPenalty(this, hand)) ||
-        (card.suit === 'building') ||
-        (card.suit === 'land' && card.name !== 'Mountain') ||
-        (card.suit === 'flame' && card.name !== 'Lightning');
-    },
-    relatedSuits: ['army', 'building', 'land', 'flame'],
-    relatedCards: ['Mountain', 'Lightning']
-  },
-  'CH19': {
-    id: 'CH19',
-    suit: 'army',
-    name: 'Rangers',
-    replaces: 'FR25',
-    strength: 5,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      return 10 * (hand.countSuit('land') + hand.countSuit('building'));
-    },
-    relatedSuits: ['land', 'building', 'army'],
-    relatedCards: []
-  },
-  'CH20': {
-    id: 'CH20',
-    suit: 'wizard',
-    name: 'Necromancer',
-    replaces: 'FR28',
-    strength: 3,
-    bonus: true,
-    penalty: false,
-    relatedSuits: ['army', 'leader', 'wizard', 'beast', 'undead'],
-    relatedCards: [],
-    extraCard: true
-  },
-  'CH21': {
-    id: 'CH21',
-    suit: 'artifact',
-    name: 'World Tree',
-    replaces: 'FR48',
-    strength: 2,
-    bonus: true,
-    penalty: false,
-    bonusScore: function(hand) {
-      var suits = [];
-      for (const card of hand.nonBlankedCards()) {
-        if (suits.includes(card.suit)) {
-          return 0;
-        }
-        suits.push(card.suit);
+      if (cardsWithRange == 1) {
+        return 5 * rangeTags;
+      } else if (cardsWithRange == 2) {
+        return 7 * rangeTags;
+      } else if (cardsWithRange >= 3) {
+        return 9 * rangeTags;
       }
-      return 70;
-    },
-    relatedSuits: allSuits(),
-    relatedCards: []
+      return 0;
+    }
   },
-  'CH22': {
-    id: 'CH22',
-    suit: 'wild',
-    name: 'Shapeshifter',
-    replaces: 'FR51',
+  'MR56': {
+    id: 'MR56',
+    type: 'maneuver',
+    name: 'Hack In',
     strength: 0,
-    bonus: true,
-    penalty: false,
-    impersonator: true,
-    action: true,
-    relatedSuits: ['artifact', 'leader', 'wizard', 'weapon', 'beast', 'undead'].sort(),
-    relatedCards: []
+    tags: ['intel'],
+    bonusScore: function (hand) {
+      return 6 * hand.countTag('tech');
+      // TODO count tech as intel
+    }
   },
-  'CH23': {
-    id: 'CH23',
-    suit: 'wild',
-    name: 'Mirage',
-    replaces: 'FR52',
+  'MR57': {
+    id: 'MR57',
+    type: 'maneuver',
+    name: 'Find Higher Ground',
     strength: 0,
-    bonus: true,
-    penalty: false,
-    impersonator: true,
-    action: true,
-    relatedSuits: ['army', 'building', 'land', 'weather', 'flood', 'flame'].sort(),
-    relatedCards: []
+    tags: [],
+    bonusScore: function (hand) {
+      return 10 * Math.min(hand.countTag('flight'), hand.countTag('range'));
+    }
+  },
+  'MR58': {
+    id: 'MR58',
+    type: 'maneuver',
+    name: 'Precise Shot',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 12 * Math.min(hand.countTag('intel'), hand.countTag('range'));
+    }
+  },
+  'MR59': {
+    id: 'MR59',
+    type: 'maneuver',
+    name: 'Build Gadgets',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 13 * Math.min(hand.countTag('tech'), hand.countTag('intel'));
+    }
+  },
+  'MR60': {
+    id: 'MR60',
+    type: 'maneuver',
+    name: 'Throw Car',
+    strength: 0,
+    tags: ['range'],
+    bonusScore: function (hand) {
+      return (hand.countTag('strength') && hand.containsTypeWithTag('location', 'urban')) ? 14 : 0;
+    }
+  },
+  'MR61': {
+    id: 'MR61',
+    type: 'maneuver',
+    name: 'Discover Weakness',
+    strength: 0,
+    tags: [],
+    bonusScore: function (hand) {
+      return 11 * Math.min(hand.countTag('intel'), hand.countTag('agility'));
+    }
   }
 };
 
-var cursedItems = {
-  'CH24': {
-    id: 'CH24',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Spyglass',
-    timing: 'any-time',
-    bonus: true,
-    penalty: true,
-    penaltyScore: function() {
-      return playerCount === 2 ? -9 : 0;
+var villains = {
+  'MR62': {
+    id: 'MR62',
+    type: 'villain',
+    name: 'Abomination',
+    strength: 13,
+    tags: ['gamma'],
+    bonusScore: function (hand) {
+      return hand.countTag('strength') >= 2 ? 0 : -20;
+    }
+  },
+  'MR63': {
+    id: 'MR63',
+    type: 'villain',
+    name: 'Black Cat',
+    strength: 8,
+    tags: [],
+    bonusScore: function (hand) {
+      return (hand.containsTypeWithTag('location', 'urban') ? 5 : 0) - (5 * hand.countType('maneuver'));
+    }
+  },
+  'MR64': {
+    id: 'MR64',
+    type: 'villain',
+    name: 'Hela',
+    strength: 18,
+    tags: ['asgard'],
+    bonusScore: function (hand) {
+      return hand.countTagExcluding('asgard', 'MR64') >= 2 ? 0 : -20;
+    }
+  },
+  'MR65': {
+    id: 'MR65',
+    type: 'villain',
+    name: 'Baron Zemo',
+    strength: 15,
+    tags: ['boss'],
+    bonusScore: function (hand) {
+      return -3 * hand.countType('hero');
+    }
+  },
+  'MR66': {
+    // TODO
+    id: 'MR66',
+    type: 'villain',
+    name: 'Juggernaut',
+    strength: 16,
+    tags: ['mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR67': {
+    id: 'MR67',
+    type: 'villain',
+    name: 'Kang',
+    strength: -10,
+    tags: [],
+    bonusScore: function (hand) {
+      const tags = new Set();
+      for (const card of hand.nonBlankedCards()) {
+        for (const tag of card.tags) {
+          tags.add(tag);
+        }
+      }
+      return tags.size * 5;
+    }
+  },
+  'MR68': {
+    id: 'MR68',
+    type: 'villain',
+    name: 'Killmonger',
+    strength: -9,
+    tags: ['wakanda'],
+    bonusScore: function (hand) {
+      return 9 * hand.countTagExcluding('wakanda', 'MR68');
+    }
+  },
+  'MR69': {
+    id: 'MR69',
+    type: 'villain',
+    name: 'Kingpin',
+    strength: 13,
+    tags: ['boss'],
+    bonusScore: function (hand) {
+      return !hand.containsTypeWithTag('location', 'urban');
+    }
+  },
+  'MR70': {
+    // TODO
+    id: 'MR70',
+    type: 'villain',
+    name: 'Loki',
+    strength: 15,
+    tags: ['asgard'],
+    bonusScore: function (hand) {
+      return 0;
+    }
+  },
+  'MR71': {
+    // TODO
+    id: 'MR71',
+    type: 'villain',
+    name: 'Magneto',
+    strength: 17,
+    tags: ['mutant', 'boss'],
+    bonusScore: function (hand) {
+      return 0;
     },
-    strength: -1,
-    referencesPlayerCount: true
+    blanks: function (card) {
+      return card.type === 'equipment';
+    }
   },
-  'CH25': {
-    id: 'CH25',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Sarcophagus',
-    timing: 'replace-turn',
-    bonus: true,
-    strength: 5
+  'MR72': {
+    // TODO
+    id: 'MR72',
+    type: 'villain',
+    name: 'Mystique',
+    strength: 14,
+    tags: ['mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'CH26': {
-    id: 'CH26',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Blindfold',
-    timing: 'replace-turn',
-    bonus: true,
-    strength: 5
+  'MR73': {
+    id: 'MR73',
+    type: 'villain',
+    name: 'Sauron',
+    strength: -7,
+    tags: [],
+    bonusScore: function (hand) {
+      return 7 * (hand.countTag('flight') + hand.countTag('range'));
+    }
   },
-  'CH27': {
-    id: 'CH27',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Book of Prophecy',
-    timing: 'any-time',
-    bonus: true,
-    strength: -1
+  'MR74': {
+    id: 'MR74',
+    type: 'villain',
+    name: 'Sentinels',
+    strength: 12,
+    tags: [],
+    bonusScore: function (hand) {
+      return hand.countTag('mutant') >= 2 ? 0 : -20;
+    }
   },
-  'CH28': {
-    id: 'CH28',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Crystal Ball',
-    timing: 'any-time',
-    bonus: true,      
-    strength: -1
+  'MR75': {
+    // TODO
+    id: 'MR75',
+    type: 'villain',
+    name: 'Selene',
+    strength: 25,
+    tags: ['mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    }
   },
-  'CH29': {
-    id: 'CH29',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Market Wagon',
-    timing: 'replace-turn',
-    bonus: true,    
-    strength: -2
-  },
-  'CH30': {
-    id: 'CH30',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Backpack',
-    timing: 'any-time',
-    bonus: true,    
-    strength: -2
-  },
-  'CH31': {
-    id: 'CH31',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Shovel',
-    timing: 'any-time',
-    bonus: true,    
-    strength: -2
-  },
-  'CH32': {
-    id: 'CH32',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Sealed Vault',
-    timing: 'any-time',
-    bonus: true,
-    strength: -4
-  },
-  'CH33': {
-    id: 'CH33',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Crystal Lens',
-    timing: 'any-time',
-    bonus: true,    
-    strength: -2
-  },
-  'CH34': {
-    id: 'CH34',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Larcenous Gloves',
-    timing: 'any-time',
-    bonus: true,    
-    strength: -3
-  },
-  'CH35': {
-    id: 'CH35',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Junkyard Map',
-    timing: 'any-time',
-    bonus: true,  
-    strength: -3
-  },
-  'CH36': {
-    id: 'CH36',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Winged Boots',
-    timing: 'any-time',
-    bonus: true,    
-    strength: -4
-  },
-  'CH37': {
-    id: 'CH37',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Staff of Transmutation',
-    timing: 'replace-turn',
-    bonus: true,    
-    strength: -4
-  },
-  'CH38': {
-    id: 'CH38',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Rake',
-    timing: 'replace-turn',
-    bonus: true,    
-    strength: -4
-  },
-  'CH39': {
-    id: 'CH39',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Treasure Chest',
-    timing: 'any-time',
-    bonus: true,
-    bonusScore: function(hand) {
-      return hand.faceDownCursedItems().length > 3 ? 25: 0;
+  'MR76': {
+    id: 'MR76',
+    type: 'villain',
+    name: 'Taskmaster',
+    strength: 11,
+    tags: [],
+    bonusScore: function (hand) {
+      return 0;
     },
-    strength: -5
+    blanks: function (card) {
+      return card.type === 'maneuver';
+    }
   },
-  'CH40': {
-    id: 'CH40',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Fishhook',
-    timing: 'replace-turn',
-    bonus: true,    
-    strength: -6
+  'MR77': {
+    id: 'MR77',
+    type: 'villain',
+    name: 'The Leader',
+    strength: 12,
+    tags: ['gamma', 'boss'],
+    bonusScore: function (hand) {
+      return -3 * (hand.countTag('strength') + hand.countTagExcluding('gamma', 'MR77'));
+    }
   },
-  'CH41': {
-    id: 'CH41',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Repair Kit',
-    timing: 'copy',
-    bonus: true,    
-    strength: -6
+  'MR78': {
+    id: 'MR78',
+    type: 'villain',
+    name: 'Toad',
+    strength: 14,
+    tags: ['mutant'],
+    bonusScore: function (hand) {
+      return 0;
+    },
+    blankedIf: function (hand) {
+      return !hand.containsTypeWithTag('villain', 'boss');
+    }
   },
-  'CH42': {
-    id: 'CH42',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Hourglass',
-    timing: 'after-turn',
-    bonus: true,    
-    strength: -7
-  },
-  'CH43': {
-    id: 'CH43',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Gold Mirror',
-    timing: 'any-time',
-    bonus: true,    
-    strength: -8
-  },
-  'CH44': {
-    id: 'CH44',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Cauldron',
-    timing: 'replace-turn',
-    bonus: true,    
-    strength: -9
-  },
-  'CH45': {
-    id: 'CH45',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Lantern',
-    timing: 'replace-turn',
-    bonus: true,    
-    strength: -10
-  },
-  'CH46': {
-    id: 'CH46',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Portal',
-    timing: 'any-time',
-    bonus: true,    
-    strength: -20,
-    extraCard: true
-  },
-  'CH47': {
-    id: 'CH47',
-    suit: 'cursed-item',
-    cursedItem: true,
-    name: 'Wishing Ring',
-    timing: 'any-time',
-    bonus: true,
-    strength: -30
+  'MR79': {
+    id: 'MR79',
+    type: 'villain',
+    name: 'Ultron',
+    strength: 14,
+    tags: ['boss'],
+    bonusScore: function (hand) {
+      return hand.countTag('tech') >= 2 ? 0 : -20;
+    }
   }
-}
+};
 
 var deck = {
-  cards: {...base},
-  cursedItems: {},
-  enableCursedHoardSuits: function() {
-    this.cards = {...base, ...cursedHoard};
-    for (const id in cursedHoard) {
-      const card = this.cards[id];
-      if (card.replaces) {
-        delete this.cards[card.replaces];
-      }
-    }
-  },
-  disableCursedHoardSuits: function() {
-    this.cards = {...base}
-  },
-  enableCursedHoardItems: function() {
-    this.cursedItems = cursedItems;
-  },
-  disableCursedHoardItems: function() {
-    this.cursedItems = {};
-  },
-  getCardByName: function(cardName) {
-    for (const id in this.cards) {
-      const card = this.cards[id];
+  remixCards: remixCards,
+  villains: villains,
+  getCardByName: function (cardName) {
+    for (const id in this.remixCards) {
+      const card = this.remixCards[id];
       if (card.name === cardName) {
         return card;
       }
     }
-    for (const id in this.cursedItems) {
-      const card = this.cursedItems[id];
+    for (const id in this.villains) {
+      const card = this.villains[id];
       if (card.name === cardName) {
         return card;
       }
     }
   },
-  getCardById: function(id) {
-    if (id.match(/^[0-9+]+$/)) {
-      id = 'FR' + id.padStart(2, '0')
-    }
-    return this.cards[id] || this.cursedItems[id];
+  getCardById: function (id) {
+    return this.remixCards[id] || this.villains[id];
   },
-  getCardsBySuit: function(suits) {
-    var cardsBySuit = {};
-    for (const id in this.cards) {
-      const card = this.cards[id];
-      if (suits === undefined || suits.includes(card.suit)) {
-        if (cardsBySuit[card.suit] === undefined) {
-          cardsBySuit[card.suit] = [];
-        }
-        cardsBySuit[card.suit].push(card);
+  getCardsByType: function (types) {
+    var cardsByType = {};
+    for (const cardType of allTypes()) {
+      if (types === undefined || types.includes(cardType)) {
+        cardsByType[cardType] = [];
       }
     }
-    var ordered = {};
-    if (Object.keys(this.cursedItems).length > 0 && (suits === undefined || suits.includes('cursed-item'))) {
-      ordered['cursed-item'] = [];
-      for (const id in this.cursedItems) {
-        ordered['cursed-item'].push(this.cursedItems[id]);
-      }  
+    for (const id in this.remixCards) {
+      const card = this.remixCards[id];
+      if (types === undefined || types.includes(card.type)) {
+        cardsByType[card.type].push(card);
+      }
     }
-    Object.keys(cardsBySuit).sort((a, b) => jQuery.i18n.prop('suit.' + a).localeCompare(jQuery.i18n.prop('suit.' + b))).forEach(function(key) {
-      ordered[key] = cardsBySuit[key];
-    });
-    return ordered;
-  },
-  suits: function() {
-    var suits = {};
-    for (const id in this.cards) {
-      const card = this.cards[id];
-      suits[card.suit] = card.suit;
+    if (types === undefined || types.includes('villain')) {
+      for (const id in this.villains) {
+        const card = this.villains[id];
+        cardsByType['villain'].push(card);
+      }
     }
-    return Object.keys(suits).sort();
+    return cardsByType;
   }
 };
 
-function isArmyClearedFromPenalty(card, hand) {
-  // FR25, CH19: Rangers: CLEARS the word Army from all Penalties
-  // FR41: Warship: CLEARS the word Army from all Penalties of all Floods
-  return hand.containsId('FR25', true) || hand.containsId('CH19', true) || (card.suit === 'flood' && hand.containsId('FR41', true));
-}
-
-function allSuits() {
-    return ['land', 'flood', 'weather', 'flame', 'army', 'wizard', 'leader', 'beast', 'weapon', 'artifact', 'wild', 'building', 'outsider', 'undead'].sort();
+function allTypes() {
+  return ['hero', 'ally', 'condition', 'equipment', 'location', 'maneuver', 'villain'];
 }
 
 var NONE = -1;
-var ISLAND = 'FR09';
-var NECROMANCER = 'FR28';
-var BOOK_OF_CHANGES = 'FR49';
-var SHAPESHIFTER = 'FR51';
-var MIRAGE = 'FR52';
-var DOPPELGANGER = 'FR53';
 
-var CH_NECROMANCER = 'CH20';
-var CH_SHAPESHIFTER = 'CH22';
-var CH_MIRAGE = 'CH23';
-var CH_DEMON = 'CH10';
-var CH_LICH = 'CH14';
-var CH_ANGEL = 'CH08';
-
-var ACTION_ORDER = [DOPPELGANGER, MIRAGE, CH_MIRAGE, SHAPESHIFTER, CH_SHAPESHIFTER, BOOK_OF_CHANGES, ISLAND, CH_ANGEL];
+var ACTION_ORDER = [];

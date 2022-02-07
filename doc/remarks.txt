@@ -1,0 +1,2 @@
+27 Heimdall: +6 with Bifrost -> card reference formatting inconsistent
+35 Worthy: .. with Power greater than 12 -> .. with base power greater than 12?
