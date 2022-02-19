@@ -109,6 +109,17 @@
             <button id="card-action-cancel-{{id}}" style="display: none;" type="button" class="btn btn-sm btn-primary float-right" onclick="event.stopPropagation(); cancelCardAction('{{id}}');">{{i18n 'button.cancel'}}</button>
         </li>
         {{/if}}
+        {{#ifEquals id 'MR22'}}
+        <li class="list-group-item text {{#if blanked}}blanked{{/if}}" onclick="event.stopPropagation();">
+          <b>{{{i18n id '.action'}}}:</b>
+          <div class="btn-group" role="group">
+            <button id="vision_strength" type="button" class="btn btn-light btn-sm {{#ifIncludes actionData 'strength'}}active{{/ifIncludes}}" onclick="toggleVisionTag('strength')"><span class="strength tag"></span></button>
+            <button id="vision_flight" type="button" class="btn btn-light btn-sm {{#ifIncludes actionData 'flight'}}active{{/ifIncludes}}" onclick="toggleVisionTag('flight')"><span class="flight tag"></span></button>
+            <button id="vision_tech" type="button" class="btn btn-light btn-sm {{#ifIncludes actionData 'tech'}}active{{/ifIncludes}}" onclick="toggleVisionTag('tech')"><span class="tech tag"></span></button>
+            <button id="vision_range" type="button" class="btn btn-light btn-sm {{#ifIncludes actionData 'range'}}active{{/ifIncludes}}" onclick="toggleVisionTag('range')"><span class="range tag"></span></button>
+          </div>
+        </li>
+        {{/ifEquals}}
       </ul>
     </div>
     {{/each}}

@@ -1,2 +1,11 @@
-27 Heimdall: +6 with Bifrost -> card reference formatting inconsistent
-35 Worthy: .. with Power greater than 12 -> .. with base power greater than 12?
+Remarks on card text:
+
+Heimdall: +6 with Bifrost -> card reference formatting inconsistent
+Worthy: .. with Power greater than 12 -> .. with base power greater than 12?
+
+Card interaction / timing questions:
+
+* What's the timing of Rogue (may copy the base power and one tag of another HERO in your hand)?
+  What if the targeted HERO is blanked (before/after depending on the timing)
+* Berserk (Choose a HERO or ALLY. -3 for each OTHER HERO or ALLY and each URBAN)
+  -> choosing a HERO or ALLY is purely thematical, right? It doesn't affect scoring in any way.

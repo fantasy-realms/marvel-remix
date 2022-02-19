@@ -44,7 +44,6 @@ class Hand {
   }
 
   containsId(cardId, allowBlanked) {
-    cardId = this._normalizeId(cardId);
     return this.cardsInHand[cardId] !== undefined && (!this.cardsInHand[cardId].blanked || allowBlanked);
   }
 
@@ -262,7 +261,7 @@ class Hand {
     }
     for (const cardAction of cardActions) {
       if (cardAction.length > 1) {
-        var cardId = this._normalizeId(cardAction[0]);
+        var cardId = cardAction[0];
         var action = cardAction.slice(1);
         var actionCard = this.getCardById(cardId);
         this.cardsInHand[cardId] = new CardInHand(actionCard.card, action);
@@ -289,7 +288,7 @@ class CardInHand {
     this.name = card.name;
     this.type = card.type;
     this.strength = card.strength;
-    this.tags = card.tags;
+    this.tags = card.tags.slice();
     this.transform = card.transform;
     this.transformedName = card.transformedName;
     this.transformedStrength = card.transformedStrength;
@@ -305,6 +304,11 @@ class CardInHand {
   }
 
   performCardAction(hand) {
+    if (this.actionData !== undefined) {
+      if (this.id === VISION) {
+        this.tags = this.tags.concat(this.actionData);
+      }
+    }
   }
 
   score(hand) {

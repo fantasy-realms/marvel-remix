@@ -19,6 +19,14 @@ Handlebars.registerHelper('ifPositive', function (value, options) {
   return options.inverse(this);
 });
 
+Handlebars.registerHelper('ifEquals', function (arg1, arg2, options) {
+  return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+});
+
+Handlebars.registerHelper('ifIncludes', function (arg1, arg2, options) {
+  return (arg1 !== undefined && arg1.includes(arg2)) ? options.fn(this) : options.inverse(this);
+});
+
 var languages = {
   'en': 'English',
 }
@@ -170,6 +178,22 @@ function cancelCardAction(id) {
   actionId = NONE;
   $('#card-action-cancel-' + id).hide();
   $('#card-action-use-' + id).show();
+  showCards();
+  updateHandView();
+}
+
+function toggleVisionTag(tag) {
+  var vision = hand.getCardById(VISION);
+  if (vision.actionData === undefined) {
+    vision.actionData = [tag];
+    magic.play();
+  } else if (vision.actionData.includes(tag)) {
+    vision.actionData = vision.actionData.filter(t => t !== tag);
+    swoosh.play();
+  } else if (vision.actionData.length < 2) {
+    vision.actionData.push(tag);
+    magic.play();
+  }
   showCards();
   updateHandView();
 }

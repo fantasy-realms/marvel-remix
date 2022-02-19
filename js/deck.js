@@ -134,7 +134,7 @@ var remixCards = {
     }
   },
   'MR13': {
-    // TODO
+    // TODO: ROGUE may copy the base power and one tag of another HERO in your hand.
     id: 'MR13',
     type: 'hero',
     name: 'Rogue',
@@ -165,7 +165,7 @@ var remixCards = {
     }
   },
   'MR16': {
-    // TODO
+    // TODO: SHURI and one other HERO or ALLY may each add one of STRENGTH, RANGE, or AGILITY.
     id: 'MR16',
     type: 'hero',
     name: 'Shuri',
@@ -183,7 +183,7 @@ var remixCards = {
     tags: ['strength', 'agility'],
     bonusScore: function (hand) {
       if (hand.containsTypeWithTag('location', 'urban')) {
-        // TODO add flight
+        hand.getCardById('MR17').tags.push('flight'); // TODO: ordering
         return 5;
       }
       return 0;
@@ -322,7 +322,7 @@ var remixCards = {
     }
   },
   'MR30': {
-    // TODO
+    // TODO: One HERO with MUTANT may count one tag twice.
     id: 'MR30',
     type: 'ally',
     name: 'Moira Mactaggert',
@@ -343,14 +343,13 @@ var remixCards = {
     }
   },
   'MR32': {
-    // TODO
     id: 'MR32',
     type: 'condition',
     name: 'Berserk',
     strength: 18,
     tags: ['strength', 'gamma'],
     bonusScore: function (hand) {
-      return 0;
+      return Math.min(0, -3 * (hand.countType('hero') + hand.countType('ally') + hand.countTag('urban') - 1));
     }
   },
   'MR33': {
@@ -408,7 +407,8 @@ var remixCards = {
     }
   },
   'MR37': {
-    // TODO
+    // TODO: Add FLIGHT to each HERO and ALLY with no FLIGHT.
+    // TODO: Add RANGE to one HERO or ALLY.
     id: 'MR37',
     type: 'equipment',
     name: 'X-Jet',
@@ -517,7 +517,7 @@ var remixCards = {
     }
   },
   'MR47': {
-    // TODO
+    // TODO: Blank a VILLAIN unless with two or more INTEL.
     id: 'MR47',
     type: 'location',
     name: 'Hidden Lair',
@@ -591,7 +591,7 @@ var remixCards = {
     }
   },
   'MR54': {
-    // TODO
+    // TODO: Up to three HEROES with MUTANT may each count one tag twice.
     id: 'MR54',
     type: 'location',
     name: 'Xavier Mansion',
@@ -638,7 +638,7 @@ var remixCards = {
     tags: ['intel'],
     bonusScore: function (hand) {
       return 6 * hand.countTag('tech');
-      // TODO count tech as intel
+      // TODO: count tech as intel
     }
   },
   'MR57': {
@@ -735,7 +735,7 @@ var villains = {
     }
   },
   'MR66': {
-    // TODO
+    // TODO: Blank one LOCATION.
     id: 'MR66',
     type: 'villain',
     name: 'Juggernaut',
@@ -782,7 +782,7 @@ var villains = {
     }
   },
   'MR70': {
-    // TODO
+    // TODO: At the end of the game, draw a card from the Remix deck and subtract its base power.
     id: 'MR70',
     type: 'villain',
     name: 'Loki',
@@ -793,7 +793,7 @@ var villains = {
     }
   },
   'MR71': {
-    // TODO
+    // TODO: Blank all EQUIPMENT and ignore all TECH.
     id: 'MR71',
     type: 'villain',
     name: 'Magneto',
@@ -807,14 +807,28 @@ var villains = {
     }
   },
   'MR72': {
-    // TODO
     id: 'MR72',
     type: 'villain',
     name: 'Mystique',
     strength: 14,
     tags: ['mutant'],
     bonusScore: function (hand) {
-      return 0;
+      if (hand.countTag('intel') >= 2) {
+        return 0;
+      }
+      const cardsByTag = new Map();
+      for (const card of hand.nonBlankedCards()) {
+        for (const tag of card.tags) {
+          if (!cardsByTag.has(tag)) {
+            cardsByTag.set(tag, new Set());
+          }
+          cardsByTag.get(tag).add(card.id);
+          if (cardsByTag.get(tag).size >= 3) {
+            return 0;
+          }
+        }
+      }
+      return -20;
     }
   },
   'MR73': {
@@ -838,7 +852,7 @@ var villains = {
     }
   },
   'MR75': {
-    // TODO
+    // TODO: Blank any HERO or ALLY in your hand. Subtract its base power from your total score.
     id: 'MR75',
     type: 'villain',
     name: 'Selene',
@@ -944,5 +958,6 @@ function allTypes() {
 }
 
 var NONE = -1;
+var VISION = 'MR22';
 
-var ACTION_ORDER = [];
+var ACTION_ORDER = [VISION];

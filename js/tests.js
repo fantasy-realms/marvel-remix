@@ -1,4 +1,5 @@
-$(document).ready(function() {
+$(document).ready(function () {
+  assertScoreByCode('MR06,MR07,MR21,MR22,MR72,MR41,MR44+MR22:strength:flight', 77, 'Rulebook example');
 });
 
 function assertScoreByName(cardNames, expectedScore, message) {
