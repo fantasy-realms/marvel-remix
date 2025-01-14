@@ -273,6 +273,14 @@ span.wild {
   padding-right: 0;
 }
 
+#hand li.bonus, #hand li.penalty, #hand li.timing {
+  background-color: #fffafa;
+  color: grey;
+  font-weight: normal;
+  font-size: 0.8rem;
+  border: 0;
+}
+
 #hand li.text {
   background-color: #fffafa;
   color: grey;

@@ -105,7 +105,18 @@ function addToView(id) {
 }
 
 function selectFromHand(id) {
-  removeFromHand(id);
+  switch (actionId) {
+    case XJET:
+      click.play();
+      hand.getCardById(actionId).actionData = [id];
+      updateHandView();
+      break;
+
+    default:
+      removeFromHand(id);
+  }
+
+  actionId = NONE;
 }
 
 function removeFromHand(id) {
@@ -166,8 +177,23 @@ function useCardAction(id) {
   actionId = id;
   hand.undoCardAction(id);
   showCards();
-  updateHandView();
-  $('#card-action-text-' + id).text(jQuery.i18n.prop(id + '.action'));
+
+  switch (id) {
+    case XJET:
+      const template = Handlebars.compile($('#hand-template').html());
+      const html = template({
+        playerCards: hand.cards()
+            .filter(card => card.type === 'hero' || card.type === 'ally' || card.id === XJET)
+      });
+      $('#hand').html(html);
+      break;
+
+    default:
+      updateHandView();
+      break;
+  }
+
+  $('#card-action-text-' + id).html(jQuery.i18n.prop(id + '.action'));
   $('#card-action-use-' + id).hide();
   $('#card-action-cancel-' + id).show();
 }
