@@ -304,10 +304,22 @@ class CardInHand {
   }
 
   performCardAction(hand) {
-    if (this.actionData !== undefined) {
-      if (this.id === VISION) {
-        this.tags = this.tags.concat(this.actionData);
-      }
+    switch (this.id) {
+      case VISION:
+        if (this.actionData !== undefined) {
+          this.tags = this.tags.concat(this.actionData);
+        }
+        break;
+
+      case XJET:
+        hand.cards()
+            .filter(card => !card.tags.includes('flight') && (card.type === 'hero' || card.type === 'ally'))
+            .forEach(card => card.tags.push('flight'));
+
+        if (this.actionData !== undefined) {
+          hand.getCardById(this.actionData[0])?.tags.push('range');
+        }
+        break;
     }
   }
 

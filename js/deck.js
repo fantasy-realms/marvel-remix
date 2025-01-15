@@ -407,13 +407,12 @@ var remixCards = {
     }
   },
   'MR37': {
-    // TODO: Add FLIGHT to each HERO and ALLY with no FLIGHT.
-    // TODO: Add RANGE to one HERO or ALLY.
     id: 'MR37',
     type: 'equipment',
     name: 'X-Jet',
     strength: 7,
     tags: [],
+    action: true,
     bonusScore: function (hand) {
       return 0;
     }
@@ -957,7 +956,8 @@ function allTypes() {
   return ['hero', 'ally', 'condition', 'equipment', 'location', 'maneuver', 'villain'];
 }
 
-var NONE = -1;
-var VISION = 'MR22';
+const NONE = -1;
+const VISION = 'MR22';
+const XJET = 'MR37';
 
-var ACTION_ORDER = [VISION];
+const ACTION_ORDER = [VISION, XJET];
